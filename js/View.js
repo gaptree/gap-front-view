@@ -12,7 +12,7 @@ export class View {
         this.map = {};
         this._id = 'gv' + IdIndex++;
 
-        this._load(data);
+        this._assignData(data);
 
         this.init();
         this.render();
@@ -24,7 +24,7 @@ export class View {
     }
 
     // private functions
-    _load(data) { Object.assign(this.data, data); }
+    _assignData(data) { Object.assign(this.data, data); }
     _regCtn() { this.ctn.update = (data) => this.update(data); }
     _mapping() {
         this.ctn.allElem(`[view="${this.id}"]`).forEach(elem => {
@@ -75,7 +75,7 @@ export class View {
 
     // public functions
     update(data) {
-        this._load(data);
+        this._assignData(data);
         this.onUpdate();
     }
 
