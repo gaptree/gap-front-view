@@ -15,5 +15,10 @@
   },
   "dependencies": {
     "gap-front-web": "^1.0.6"
+  },
+  "scripts": {
+    "test": "npm run jest && npm run eslint",
+    "jest": "jest",
+    "eslint": "eslint ."
   }
 }

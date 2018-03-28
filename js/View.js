@@ -1,20 +1,25 @@
-import {CtnAdapter} from './CtnAdapter.js';
+import {createElem} from './elem/createElem.js';
 
 let IdIndex = 1;
 
-export class View extends CtnAdapter {
-    constructor(data) {
-        super();
+export class View {
 
+    static get tag() { return this._tag || null; }
+    static set tag(tagName) { this._tag = tagName; }
+
+    constructor(data) {
         this.data = {};
         this.map = {};
         this._id = 'gv' + IdIndex++;
 
         this._load(data);
+
         this.init();
         this.render();
+
         this._regCtn();
         this._mapping();
+
         this.startup();
     }
 
@@ -22,7 +27,7 @@ export class View extends CtnAdapter {
     _load(data) { Object.assign(this.data, data); }
     _regCtn() { this.ctn.update = (data) => this.update(data); }
     _mapping() {
-        this.ctn.allElem(`[vn="${this.vnId}"]`).forEach(elem => {
+        this.ctn.allElem(`[view="${this.id}"]`).forEach(elem => {
             const key = elem.getAttribute('key');
 
             if (this.map[key]) {
@@ -36,6 +41,12 @@ export class View extends CtnAdapter {
 
     // getter
     get id() { return this._id; }
+
+    get ctn() {
+        this._ctn = this._ctn || createElem(this.constructor.tag);
+        return this._ctn;
+    }
+
 
     // protected functions
     d(key) { return `view="${this.id}" key="${key}"`; }
@@ -66,6 +77,13 @@ export class View extends CtnAdapter {
     update(data) {
         this._load(data);
         this.onUpdate();
+    }
+
+    appendTo(elem) {
+        if (!(elem instanceof HTMLElement)) {
+            throw new Error('Can only append to HTMLElement');
+        }
+        elem.appendChild(this.ctn);
     }
 
     // to implement
