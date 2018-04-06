@@ -52,13 +52,12 @@ export class View {
     d(key) { return `view="${this.id}" key="${key}"`; }
 
     view(key, viewClass, data) {
-        const html = `<input type="hidden" ${this.d(key)}>`;
         if (this.map.hasOwnProperty(key)) {
-            return html;
+            return this.map[key];
         }
 
         this.map[key] = (new viewClass(data)).ctn;
-        return html;
+        return this.map[key];
     }
 
     get(key) {
