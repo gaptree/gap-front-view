@@ -76,7 +76,7 @@ export class View {
     // public functions
     update(data) {
         this._assignData(data);
-        this.onUpdate();
+        this.handleUpdate();
         return this;
     }
 
@@ -91,5 +91,5 @@ export class View {
     init() {}
     render() {}
     startup() {}
-    onUpdate() {}
+    handleUpdate() {}
 }
