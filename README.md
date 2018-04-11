@@ -19,7 +19,7 @@ export class AuthorView extends View
 {
     static get tag() { return 'strong'; }
 
-    onUpdate() {
+    handleUpdate() {
         this.render();
     }
 
@@ -45,7 +45,7 @@ export class BookView extends Div
         `;
     }
 
-    onUpdate() {
+    handleUpdate() {
         this.get('author').update({name: 'haha'});
     }
 }

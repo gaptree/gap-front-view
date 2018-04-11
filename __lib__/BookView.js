@@ -11,7 +11,7 @@ export class BookView extends P
         `;
     }
 
-    onUpdate() {
+    handleUpdate() {
         this.get('author').update({name: 'haha'});
     }
 }

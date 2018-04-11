@@ -4,7 +4,7 @@ export class AuthorView extends View
 {
     static get tag() { return 'strong'; }
 
-    onUpdate() {
+    handleUpdate() {
         this.render();
     }
 
