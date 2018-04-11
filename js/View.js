@@ -70,12 +70,14 @@ export class View {
             return;
         }
         elem.setVal(val);
+        return this;
     }
 
     // public functions
     update(data) {
         this._assignData(data);
         this.onUpdate();
+        return this;
     }
 
     appendTo(elem) {
