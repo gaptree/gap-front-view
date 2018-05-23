@@ -1,93 +1,97 @@
-import {createElem} from './elem/createElem.js';
+import {createElem} from './fun/createElem';
+import {Binder} from './Binder';
+//import {deepAssign} from './fun/deepAssign';
 
-let IdIndex = 1;
+let ViewIndex = 1;
 
 export class View {
+    static get tag() { return null; }
 
-    static get tag() { return this._tag || null; }
-    static set tag(tagName) { this._tag = tagName; }
+    constructor(data = {}) {
+        this.children = {};
+        this.binder = new Binder();
 
-    constructor(data) {
-        this.data = {};
-        this.map = {};
-        this._id = 'gv' + IdIndex++;
+        this.vid = 'gv' + ViewIndex++;
+        this.ctn = createElem(this.constructor.tag || 'template');
+        this.ctn.innerHTML = this.template();
 
-        this._assignData(data);
+        this.binder.bind(this.ctn);
+        this.binder.update(data);
 
+        this.ctn.allElem('gap-view')
+            .forEach(holder => holder.replace(this.children[holder.getAttribute('vid')].elem));
+
+        // deprecated
         this.init();
         this.render();
-
-        this._regCtn();
-        this._mapping();
-
         this.startup();
     }
 
-    // private functions
-    _assignData(data) { Object.assign(this.data, data); }
-    _regCtn() { this.ctn.update = (data) => this.update(data); }
-    _mapping() {
-        this.ctn.allElem(`[view="${this.id}"]`).forEach(elem => {
-            const key = elem.getAttribute('key');
+    update(data) {
+        this.binder.update(data);
 
-            if (this.map[key]) {
-                elem.replace(this.map[key]);
-                return;
+        this.handleUpdate(); // todo deprecated
+        return this;
+    }
+
+    get elem() {
+        if (this.ctn.tagName === 'TEMPLATE') {
+            return this.ctn.content;
+        }
+        return this.ctn;
+    }
+
+    template() {
+        return '';
+    }
+
+    html(strs, ...items) {
+        const raw = strs.raw;
+        const arr = [];
+
+        const createViewHolder = (item) => {
+            return `<gap-view vid="${item.vid}"></gap-view>`;
+        };
+
+        const toStr = (item) => {
+            let str = '';
+            if (typeof item === 'string') {
+                str = item;
+            } else if (Array.isArray(item)) {
+                str = item.map(sub => toStr(sub)).join('');
+            } else if (item instanceof View) {
+                str = createViewHolder(item);
+            } else if (typeof item === 'function') {
+                str = this.binder.createHandlerHolder(item);
             }
 
-            this.map[key] = elem;
+            return str.trim();
+        };
+
+        items.forEach((item, index) => {
+            let lit = raw[index];
+            let val = toStr(item);
+
+            if (lit.endsWith('$')) {
+                arr.push(lit.slice(0, -1));
+                arr.push(this.binder.createTextHolder(val));
+                return;
+            }
+            arr.push(lit);
+            arr.push(val);
         });
-    }
 
-    // getter
-    get id() { return this._id; }
-
-    get ctn() {
-        this._ctn = this._ctn || createElem(this.constructor.tag);
-        return this._ctn;
-    }
-
-
-    // protected functions
-    d(key) { return `view="${this.id}" key="${key}"`; }
-
-    view(key, viewClass, data) {
-        if (this.map.hasOwnProperty(key)) {
-            return this.map[key];
-        }
-
-        this.map[key] = (new viewClass(data)).ctn;
-        return this.map[key];
-    }
-
-    get(key) {
-        return this.map[key];
-    }
-
-    set(key, val) {
-        const elem = this.get(key);
-        if (!elem) {
-            return;
-        }
-        elem.setVal(val);
-        return this;
-    }
-
-    // public functions
-    update(data) {
-        this._assignData(data);
-        this.handleUpdate();
-        return this;
+        arr.push(raw[raw.length - 1]);
+        return arr.join('').replace(/\s+/g, ' ').trim();
     }
 
     appendTo(elem) {
-        if (!(elem instanceof HTMLElement)) {
-            throw new Error('Can only append to HTMLElement');
+        if (elem instanceof Node) {
+            elem.appendChild(this.elem);
         }
-        elem.appendChild(this.ctn);
     }
 
-    // to implement
+    // deprecated
     init() {}
     render() {}
     startup() {}
