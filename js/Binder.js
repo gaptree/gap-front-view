@@ -32,6 +32,9 @@ export class Binder {
                     if (pre === 'on') {
                         elem.on(type, (e) => this.handlers[parseInt(value)](elem, e));
                         toRemoves.push(name);
+                    } else if (pre === 'cb') {
+                        elem.cb(type, (e) => this.handlers[parseInt(value)](elem, e));
+                        toRemoves.push(name);
                     } else if (pre === 'bind') {
                         this.mapElemItem(value, elem, type);
                         toRemoves.push(name);
