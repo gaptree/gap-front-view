@@ -1,10 +1,12 @@
 import {deepAssign} from './fun/deepAssign';
-import {Handler} from './Handler';
+import {Observer} from './Observer';
+import {Vnode} from './Vnode';
 
 export class Binder {
     constructor() {
-        this.maps = {};
-        this.vals = {};
+        this.vnode = new Vnode();
+        this.data = {};
+
         this.handlers = {};
         this.handlerIndex = 0;
     }
@@ -70,54 +72,28 @@ export class Binder {
     }
 
     mapElemItem(keys, elem, item) {
-        this.getMap(keys).push(new Handler(elem, item));
-    }
-
-    getMap(keys) {
-        const arr = keys.split('.');
-        const key = arr[arr.length - 1];
-        let map = this.maps;
-
-        for (let i = 0; i < arr.length - 1; i++) {
-            const sub = arr[i];
-            if (!map[sub]) {
-                map[sub] = {};
-            }
-            map = map[sub];
-        }
-        if (!map[key]) {
-            map[key] = [];
-        }
-        return map[key];
+        this.vnode.vnode(keys).addObserver(new Observer(elem, item));
     }
 
     update(data) {
-        deepAssign(this.vals, data);
+        deepAssign(this.data, data);
 
-        const deepIn = (maps, vals) => {
-            for (const key in maps) {
-                if (!maps.hasOwnProperty(key)) {
+        const deepIn = (rootVnode, vals) => {
+            for (const key in vals) {
+                if (!vals.hasOwnProperty(key)) {
                     continue;
                 }
-
+                const vnode = rootVnode.vnode(key);
                 const val = vals[key];
-                const map = maps[key];
 
-                if (val instanceof Object) {
-                    if (map instanceof Object) {
-                        deepIn(map, val);
-                    }
-                } else {
-                    if (map instanceof Array) {
-                        map.forEach(handler => {
-                            handler.update(val);
-                        });
-                    }
+                vnode.observers.forEach(observer => observer.update(val));
+                if (vnode.hasChildren() && val instanceof Object) {
+                    deepIn(vnode, val);
                 }
             }
         };
 
-        deepIn(this.maps, this.vals);
+        deepIn(this.vnode, data);
     }
 
     createTextHolder(key) {

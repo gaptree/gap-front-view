@@ -5,7 +5,7 @@ const ElemProps = [
     'checked'
 ];
 
-export class Handler {
+export class Observer {
     constructor(elem, key) {
         this.elem = elem;
         this.key = key;

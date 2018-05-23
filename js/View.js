@@ -34,6 +34,10 @@ export class View {
         return this;
     }
 
+    get data() {
+        return this.binder.data;
+    }
+
     get elem() {
         if (this.ctn.tagName === 'TEMPLATE') {
             return this.ctn.content;
