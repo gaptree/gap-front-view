@@ -39,7 +39,9 @@ export class View {
             return this._elems;
         }
 
-        this.ctn.appendChild(this.template.frag);
+        if (this.template) {
+            this.ctn.appendChild(this.template.frag);
+        }
 
         this._elems = [this.ctn];
         return this._elems;
