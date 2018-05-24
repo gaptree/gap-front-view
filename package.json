@@ -14,7 +14,7 @@
     "regenerator-runtime": "^0.11.1"
   },
   "dependencies": {
-    "gap-front-web": "^1.0.6"
+    "gap-front-web": "^1.2.11"
   },
   "scripts": {
     "test": "npm run jest && npm run eslint",
