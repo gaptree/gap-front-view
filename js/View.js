@@ -16,8 +16,12 @@ export class View {
 
         this.template = this.template();
 
-        this.vnode.bind(this.template);
-        this.vnode.update(data);
+        if (this.template) {
+            this.vnode.bind(this.template);
+        }
+        if (data) {
+            this.vnode.update(data);
+        }
 
         // deprecated
         this.init();
