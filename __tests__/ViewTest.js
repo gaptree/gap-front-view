@@ -2,7 +2,7 @@ import {View} from '../index.js';
 
 class UserView extends View {
     template() {
-        return this.html`
+        return this.tpl`
         <form action="javascript:;">
             <input
                 name="userId"
@@ -41,4 +41,11 @@ test('view', () => {
 
     expect(userIdInput.value).toBe('changedUserId');
     expect(nameInput.value).toBe('Tom');
+
+    userView.setData('name', 'Tom Changed');
+    expect(nameInput.value).toBe('Tom Changed');
+
+    expect(userView.getData('name')).toBe('Tom Changed');
+
+    expect(userView.data).toEqual({userId: 'changedUserId', name: 'Tom Changed'});
 });

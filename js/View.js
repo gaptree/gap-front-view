@@ -1,6 +1,6 @@
-import {createElem} from './fun/createElem';
-import {Binder} from './Binder';
-//import {deepAssign} from './fun/deepAssign';
+import {createElem} from './lib/createElem';
+import {Vnode} from './core/vnode/Vnode';
+import {tpl} from './core/tpl';
 
 let ViewIndex = 1;
 
@@ -8,18 +8,17 @@ export class View {
     static get tag() { return null; }
 
     constructor(data = {}) {
-        this.children = {};
-        this.binder = new Binder();
+        this.vnode = new Vnode();
 
         this.vid = 'gv' + ViewIndex++;
         this.ctn = createElem(this.constructor.tag || 'template');
-        this.ctn.innerHTML = this.template();
 
-        this.binder.bind(this.ctn);
-        this.binder.update(data);
+        const template = this.template();
 
-        this.ctn.allElem('gap-view')
-            .forEach(holder => holder.replace(this.children[holder.getAttribute('vid')].elem));
+        this.vnode.bind(template);
+        this.vnode.update(data);
+
+        this.elem.appendChild(template.elem);
 
         // deprecated
         this.init();
@@ -28,14 +27,24 @@ export class View {
     }
 
     update(data) {
-        this.binder.update(data);
+        this.vnode.update(data);
 
         this.handleUpdate(); // todo deprecated
         return this;
     }
 
+    setData(key, val) {
+        this.vnode.setData(key, val);
+    }
+
+    getData(key) {
+        return this.vnode.getData(key);
+    }
+
+    // deprecated
     get data() {
-        return this.binder.data;
+        console.warn('please use {View.getData(key)} instead of {View.data.key}'); // eslint-disable-line
+        return this.vnode.data;
     }
 
     get elem() {
@@ -49,44 +58,8 @@ export class View {
         return '';
     }
 
-    html(strs, ...items) {
-        const raw = strs.raw;
-        const arr = [];
-
-        const createViewHolder = (item) => {
-            return `<gap-view vid="${item.vid}"></gap-view>`;
-        };
-
-        const toStr = (item) => {
-            let str = '';
-            if (typeof item === 'string') {
-                str = item;
-            } else if (Array.isArray(item)) {
-                str = item.map(sub => toStr(sub)).join('');
-            } else if (item instanceof View) {
-                str = createViewHolder(item);
-            } else if (typeof item === 'function') {
-                str = this.binder.createHandlerHolder(item);
-            }
-
-            return str.trim();
-        };
-
-        items.forEach((item, index) => {
-            let lit = raw[index];
-            let val = toStr(item);
-
-            if (lit.endsWith('$')) {
-                arr.push(lit.slice(0, -1));
-                arr.push(this.binder.createTextHolder(val));
-                return;
-            }
-            arr.push(lit);
-            arr.push(val);
-        });
-
-        arr.push(raw[raw.length - 1]);
-        return arr.join('').replace(/\s+/g, ' ').trim();
+    tpl(strs, ...items) {
+        return tpl(strs, ...items);
     }
 
     appendTo(elem) {

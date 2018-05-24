@@ -1,2 +1,2 @@
 export {View} from './js/View.js';
-export {deepAssign} from './js/fun/deepAssign';
+export {deepAssign} from './js/lib/deepAssign';
