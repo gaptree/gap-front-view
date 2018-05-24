@@ -33,17 +33,17 @@ export const bind = (vnode, tpl) => {
         }
 
         toRemoves.forEach(attr => elem.removeAttribute(attr));
+
+        bindElemCollection(elem.children);
     };
 
     const bindElemCollection = (elemCollection) => {
         for (const elem of elemCollection) {
             bindElem(elem);
-            bindElemCollection(elem.children);
         }
     };
 
-    if (tpl.elem instanceof  Element) {
-        bindElem(tpl.elem);
+    for (const elem of tpl.elems) {
+        bindElem(elem);
     }
-    bindElemCollection(tpl.elem.children);
 };

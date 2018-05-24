@@ -1,4 +1,5 @@
 import {createElem} from './lib/createElem';
+import {toFrag} from './lib/toFrag';
 import {Vnode} from './core/vnode/Vnode';
 import {tpl} from './core/tpl';
 
@@ -13,17 +14,35 @@ export class View {
         this.vid = 'gv' + ViewIndex++;
         this.ctn = createElem(this.constructor.tag || 'template');
 
-        const template = this.template();
+        this.template = this.template();
 
-        this.vnode.bind(template);
+        this.vnode.bind(this.template);
         this.vnode.update(data);
-
-        this.elem.appendChild(template.elem);
 
         // deprecated
         this.init();
         this.render();
         this.startup();
+    }
+
+    get elems() {
+        if (this._elems) {
+            return this._elems;
+        }
+
+        if (this.ctn.tagName === 'TEMPLATE') {
+            this._elems = this.template.elems;
+            return this._elems;
+        }
+
+        this.ctn.appendChild(this.template.frag);
+
+        this._elems = [this.ctn];
+        return this._elems;
+    }
+
+    get frag() {
+        return toFrag(this.elems);
     }
 
     update(data) {
@@ -41,17 +60,22 @@ export class View {
         return this.vnode.getData(key);
     }
 
+    arrPush(key, item) {
+        this.vnode.arrPush(key, item);
+    }
+
+    arrPop(key) {
+        this.vnode.arrPop(key);
+    }
+
+    arrFilter(key, handle) {
+        this.vnode.arrFilter(key, handle);
+    }
+
     // deprecated
     get data() {
         console.warn('please use {View.getData(key)} instead of {View.data.key}'); // eslint-disable-line
         return this.vnode.data;
-    }
-
-    get elem() {
-        if (this.ctn.tagName === 'TEMPLATE') {
-            return this.ctn.content;
-        }
-        return this.ctn;
     }
 
     template() {
@@ -63,9 +87,11 @@ export class View {
     }
 
     appendTo(elem) {
-        if (elem instanceof Node) {
-            elem.appendChild(this.elem);
+        if (!(elem instanceof Node)) {
+            return;
         }
+
+        elem.appendChild(this.frag);
     }
 
     // deprecated

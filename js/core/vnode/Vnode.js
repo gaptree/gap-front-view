@@ -49,6 +49,46 @@ export class Vnode {
         );
     }
 
+    assertArr(arr) {
+        if (!Array.isArray(arr)) {
+            throw new Error(`${arr} not match array`);
+        }
+    }
+
+    arrPush(key, item) {
+        const vnode = this.vnode(key);
+        const val = vnode.val;
+        this.assertArr(val);
+
+        val.push(item);
+        vnode.observers.forEach(observer => observer.push(item));
+    }
+
+    arrPop(key) {
+        const vnode = this.vnode(key);
+        const val = vnode.val;
+        this.assertArr(val);
+
+        const item = val.pop();
+        vnode.observers.forEach(observer => observer.remove(item));
+    }
+
+    arrFilter(key, handle) {
+        const vnode = this.vnode(key);
+        const val = vnode.val;
+        this.assertArr(val);
+
+        vnode.val = val.filter(item => {
+            if (handle(item)) {
+                return true;
+            }
+
+
+            vnode.observers.forEach(observer => observer.remove(item));
+            return false;
+        });
+    }
+
     getData(key) {
         return this.vnode(key).val;
     }

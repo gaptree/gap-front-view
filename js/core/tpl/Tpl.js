@@ -1,4 +1,5 @@
 import {createElem} from '../../lib/createElem';
+import {toFrag} from '../../lib/toFrag';
 import {
     createNodeHolder,
     createFunHolder,
@@ -8,7 +9,7 @@ import {
 
 export class Tpl {
     constructor(strs, ...items) {
-        this.ctn = createElem('template');
+        this.ctn = createElem('div');
         this.ctn.innerHTML = this.tpl(strs, ...items);
 
         this.ctn.allElem('gap-node').forEach(holder => {
@@ -18,8 +19,24 @@ export class Tpl {
         });
     }
 
-    get elem() {
-        return this.ctn.content;
+    get elems() {
+        if (this._elems) {
+            return this._elems;
+        }
+
+        this._elems = [];
+        for (const elem of this.ctn.children) {
+            this._elems.push(elem);
+        }
+        return this._elems;
+    }
+
+    get frag() {
+        return toFrag(this.elems);
+    }
+
+    remove() {
+        this.elems.forEach(elem => elem.remove());
     }
 
     tpl(strs, ...items) {
@@ -27,14 +44,20 @@ export class Tpl {
         const arr = [];
 
         const toStr = (item) => {
+            if (!item) {
+                return '';
+            }
+
             let str = '';
 
             if (Array.isArray(item)) {
                 str = item.map(sub => toStr(sub)).join('');
             } else if (typeof item === 'function') {
                 str = createFunHolder(item);
-            } else if (item && item.elem instanceof Node) {
+            } else if (item.elem instanceof Node) {
                 str = createNodeHolder(item.elem);
+            } else if (Array.isArray(item.elems)) {
+                str = item.elems.map(sub => toStr(sub)).join('');
             } else {
                 str = item;
             }
