@@ -210,8 +210,6 @@ userListView.arrFilter('users', user => user.name.indexOf('dog') >= 0);
 </div>
 ```
 
-## todo
-
 ```javascript
 import {View} from 'gap-front-view';
 
