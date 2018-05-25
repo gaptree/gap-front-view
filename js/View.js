@@ -1,7 +1,7 @@
 import {createElem} from './lib/createElem';
 import {toFrag} from './lib/toFrag';
 import {Vnode} from './core/vnode/Vnode';
-import {tpl} from './core/tpl';
+import {gapTpl} from './core/gapTpl';
 
 let ViewIndex = 1;
 
@@ -14,10 +14,10 @@ export class View {
         this.vid = 'gv' + ViewIndex++;
         this.ctn = createElem(this.constructor.tag || 'template');
 
-        this.template = this.template();
+        this.tpl = this.template();
 
-        if (this.template) {
-            this.vnode.bind(this.template);
+        if (this.tpl) {
+            this.vnode.bind(this.tpl);
         }
         if (data) {
             this.vnode.update(data);
@@ -34,13 +34,13 @@ export class View {
             return this._elems;
         }
 
-        if (this.ctn.tagName === 'TEMPLATE') {
-            this._elems = this.template.elems;
+        if (this.ctn.tagName === 'TEMPLATE' && this.tpl) {
+            this._elems = this.tpl.elems;
             return this._elems;
         }
 
-        if (this.template) {
-            this.ctn.appendChild(this.template.frag);
+        if (this.tpl) {
+            this.ctn.appendChild(this.tpl.frag);
         }
 
         this._elems = [this.ctn];
@@ -88,8 +88,8 @@ export class View {
         return '';
     }
 
-    tpl(strs, ...items) {
-        return tpl(strs, ...items);
+    html(strs, ...items) {
+        return gapTpl(strs, ...items);
     }
 
     appendTo(elem) {
@@ -98,6 +98,12 @@ export class View {
         }
 
         elem.appendChild(this.frag);
+    }
+
+    remove() {
+        if (this.tpl) {
+            this.tpl.remove();
+        }
     }
 
     // deprecated

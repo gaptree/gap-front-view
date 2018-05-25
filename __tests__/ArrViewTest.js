@@ -1,20 +1,28 @@
 import {View} from '../index';
 
+class UserView extends View {
+    template() {
+        return this.html`
+            <span bind-id="userId">
+                $${'name'}
+            </span>
+        `;
+    }
+}
+
 class UserListView extends View {
     template() {
         return this.html`
-        <div id="user-list" bind-arr="users" arr-key=${user => user.userId}>
-            ${() => this.html`
-                <span bind-id="userId">
-                    $${'name'}
-                </span>
-            `}
+        <div id="user-list"
+            bind-arr="users"
+            arr-key=${(user) => user.userId}>
+            ${(user) => new UserView(user)}
         </div>
         `;
     }
 }
 
-test('view bind arr', () => {
+test('arr view', () => {
     const userListView = new UserListView({
         users: [
             {

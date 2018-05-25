@@ -10,6 +10,7 @@ import {ClassObserver} from './observer/ClassObserver';
 import {PropObserver} from './observer/PropObserver';
 import {TextObserver} from './observer/TextObserver';
 import {ValObserver} from './observer/ValObserver';
+import {ViewObserver} from './observer/ViewObserver';
 import {bind} from './bind';
 
 export class Vnode {
@@ -110,13 +111,13 @@ export class Vnode {
                 const val = vals[key];
 
                 this.updateVnodeVal(vnode, val);
-                //vnode.observers.forEach(observer => observer.update(val));
                 if (vnode.hasChildren() && val instanceof Object) {
                     deepIn(vnode, val);
                 }
             }
         };
 
+        this.updateVnodeVal(this, data);
         deepIn(this, data);
     }
 
@@ -145,6 +146,8 @@ export class Vnode {
             observer = new TextObserver(elem);
         } else if (type === 'arr' || type === 'array') {
             observer = new ArrayObserver(elem, this);
+        } else if (type === 'view') {
+            observer = new ViewObserver(elem);
         } else {
             observer = new AttrObserver(elem, type);
         }

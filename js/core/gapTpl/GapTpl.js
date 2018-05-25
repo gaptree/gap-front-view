@@ -7,10 +7,10 @@ import {
     getNode
 } from '../holder';
 
-export class Tpl {
+export class GapTpl {
     constructor(strs, ...items) {
         this.ctn = createElem('div');
-        this.ctn.innerHTML = this.tpl(strs, ...items);
+        this.ctn.innerHTML = this.html(strs, ...items);
 
         this.ctn.allElem('gap-node').forEach(holder => {
             const nodeId = holder.getAttribute('node-id');
@@ -39,7 +39,7 @@ export class Tpl {
         this.elems.forEach(elem => elem.remove());
     }
 
-    tpl(strs, ...items) {
+    html(strs, ...items) {
         const raw = strs.raw;
         const arr = [];
 
