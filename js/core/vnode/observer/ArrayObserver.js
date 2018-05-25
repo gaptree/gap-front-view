@@ -30,7 +30,7 @@ export class ArrayObserver extends ObserverBase {
 
     getVnodeByItem(item) {
         const key = this.getKey(item);
-        const tpl = this.getTpl();
+        const tpl = this.getTpl(item);
         const vnode = this.vnode.vnode(key);
 
         if (!vnode.isBinded()) {
@@ -55,8 +55,8 @@ export class ArrayObserver extends ObserverBase {
         this.elem.innerHTML = '';
     }
 
-    getTpl() {
-        return this.getTplFun()();
+    getTpl(item) {
+        return this.getTplFun()(item);
     }
 
     getKey(item) {
@@ -77,6 +77,7 @@ export class ArrayObserver extends ObserverBase {
         if (this._tplFunId) {
             return this._tplFunId;
         }
+        throw new Error('Cannot find tpl fun');
     }
 
     getKeyFunId() {
