@@ -2,7 +2,7 @@ import {View} from '../index.js';
 
 class UserView extends View {
     template() {
-        return this.tpl`
+        return this.html`
         <form action="javascript:;">
             <input
                 name="userId"

@@ -1,6 +1,12 @@
 import {getFun} from '../holder';
+import {View} from '../../View';
 
 export const bind = (vnode, tpl) => {
+    if (tpl instanceof View) {
+        vnode.addObserver('view', tpl);
+        return;
+    }
+
     const bindElem = (elem) => {
         if (!elem.attributes) {
             return;
