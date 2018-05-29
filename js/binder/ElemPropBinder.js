@@ -1,3 +1,5 @@
+import {parseVal} from '../lib/parseVal';
+
 const elemProps = [
     'id',
     'name',
@@ -62,9 +64,6 @@ export class ElemPropBinder {
     }
 
     parseVal(inVal) {
-        if (typeof inVal === 'function') {
-            return inVal();
-        }
-        return inVal;
+        return parseVal(inVal);
     }
 }

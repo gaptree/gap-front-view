@@ -31,5 +31,5 @@ export const getFun = (index) => {
 };
 
 export const createTextHolder = (key) => {
-    return `<gap-text bind-text-node="${key}"></gap-text>`;
+    return `<gap-text bind="${key}"></gap-text>`;
 };

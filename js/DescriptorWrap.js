@@ -1,8 +1,9 @@
 import {ElemPropBinder} from './binder/ElemPropBinder';
+import {TextNodeBinder} from './binder/TextNodeBinder';
 
 export class DescriptorWrap {
     constructor() {
-        this.elemPropBinders = [];
+        this.binders = [];
         this.val;
     }
 
@@ -17,7 +18,7 @@ export class DescriptorWrap {
             },
             set: (val) => {
                 this.val = val;
-                this.elemPropBinders.forEach(binder => binder.update(val));
+                this.binders.forEach(binder => binder.update(val));
             }
         };
 
@@ -25,7 +26,14 @@ export class DescriptorWrap {
     }
 
     bindElemProp(elem, prop) {
-        this.elemPropBinders.push(new ElemPropBinder(elem, prop));
+        this.binders.push(new ElemPropBinder(elem, prop));
+    }
+
+    bindElem(elem) {
+        if (elem.tagName === 'GAP-TEXT') {
+            this.binders.push(new TextNodeBinder(elem));
+            return;
+        }
     }
 
     setVal(val) {

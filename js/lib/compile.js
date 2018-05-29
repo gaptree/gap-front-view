@@ -13,6 +13,12 @@ export const compile = (data, tpl) => {
         for (const attr of elem.attributes) {
             const attrName = attr.name;
             const attrVal = attr.value;
+
+            if (attrName === 'bind') {
+                data.descriptor(attrVal).bindElem(elem);
+                continue;
+            }
+
             const sepIndex = attrName.indexOf('-');
 
             if (sepIndex <= 0) {
