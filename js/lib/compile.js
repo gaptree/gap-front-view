@@ -1,13 +1,9 @@
-import {getFun} from '../holder';
-import {View} from '../../View';
+import {getFun} from './holder';
+//import {bindElemProp} from './bindElemProp';
 
-export const bind = (vnode, tpl) => {
-    if (tpl instanceof View) {
-        vnode.addObserver('view', tpl);
-        return;
-    }
+export const compile = (data, tpl) => {
 
-    const bindElem = (elem) => {
+    const compileElem = (elem) => {
         if (!elem.attributes) {
             return;
         }
@@ -33,23 +29,24 @@ export const bind = (vnode, tpl) => {
                 elem.cb(type, (e) => getFun(attrVal)(elem, e));
                 toRemoves.push(attrName);
             } else if (pre === 'bind') {
-                vnode.vnode(attrVal).addObserver(type, elem);
+                data.descriptor(attrVal)
+                    .bindElemProp(elem, type);
                 toRemoves.push(attrName);
             }
         }
 
         toRemoves.forEach(attr => elem.removeAttribute(attr));
 
-        bindElemCollection(elem.children);
+        compileElemCollection(elem.children);
     };
 
-    const bindElemCollection = (elemCollection) => {
+    const compileElemCollection = (elemCollection) => {
         for (const elem of elemCollection) {
-            bindElem(elem);
+            compileElem(elem);
         }
     };
 
-    for (const elem of tpl.elems) {
-        bindElem(elem);
+    for (const tplElem of tpl.elems) {
+        compileElem(tplElem);
     }
 };

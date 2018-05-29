@@ -1,26 +1,29 @@
 import {createElem} from './lib/createElem';
 import {toFrag} from './lib/toFrag';
-import {Vnode} from './core/vnode/Vnode';
-import {gapTpl} from './core/gapTpl';
+import {compile} from './lib/compile';
+import {deepAssign} from './lib/deepAssign';
+import {GapTpl} from './GapTpl';
+import {Proxy} from './Proxy';
 
-let ViewIndex = 1;
+let viewIndex = 1;
 
 export class View {
     static get tag() { return null; }
 
     constructor(data = {}) {
-        this.vnode = new Vnode();
-
-        this.vid = 'gv' + ViewIndex++;
-        this.ctn = createElem(this.constructor.tag || 'template');
-
+        this.data = new Proxy();
+        this.vid = 'gv' + viewIndex++;
+        if (this.constructor.tag) {
+            this.ctn = createElem(this.constructor.tag);
+        }
         this.tpl = this.template();
 
         if (this.tpl) {
-            this.vnode.bind(this.tpl);
+            compile(this.data, this.tpl);
         }
+
         if (data) {
-            this.vnode.update(data);
+            this.update(data);
         }
 
         // deprecated
@@ -29,81 +32,60 @@ export class View {
         this.startup();
     }
 
+    update(data) {
+        deepAssign(this.data, data);
+    }
+
     get elems() {
         if (this._elems) {
             return this._elems;
         }
 
-        if (this.ctn.tagName === 'TEMPLATE' && this.tpl) {
-            this._elems = this.tpl.elems;
+        if (this.ctn) {
+            if (this.tpl) {
+                this.ctn.appendChild(this.tpl.frag);
+            }
+            this._elems = [this.ctn];
             return this._elems;
         }
 
         if (this.tpl) {
-            this.ctn.appendChild(this.tpl.frag);
+            this._elems = this.tpl.elems;
+            return this._elems;
         }
 
-        this._elems = [this.ctn];
-        return this._elems;
+        return [];
     }
 
     get frag() {
         return toFrag(this.elems);
     }
 
-    update(data) {
-        this.vnode.update(data);
-
-        this.handleUpdate(); // todo deprecated
-        return this;
-    }
-
-    setData(key, val) {
-        this.vnode.setData(key, val);
-    }
-
-    getData(key) {
-        return this.vnode.getData(key);
-    }
-
-    arrPush(key, item) {
-        this.vnode.arrPush(key, item);
-    }
-
-    arrPop(key) {
-        this.vnode.arrPop(key);
-    }
-
-    arrFilter(key, handle) {
-        this.vnode.arrFilter(key, handle);
-    }
-
-    // deprecated
-    get data() {
-        console.warn('please use {View.getData(key)} instead of {View.data.key}'); // eslint-disable-line
-        return this.vnode.data;
-    }
-
-    template() {
-        return '';
-    }
-
-    html(strs, ...items) {
-        return gapTpl(strs, ...items);
-    }
-
-    appendTo(elem) {
-        if (!(elem instanceof Node)) {
+    appendTo(node) {
+        if (!(node instanceof Node)) {
             return;
         }
 
-        elem.appendChild(this.frag);
+        node.appendChild(this.frag);
     }
 
     remove() {
         if (this.tpl) {
             this.tpl.remove();
+            return;
         }
+
+        if (this.ctn) {
+            this.ctn.remove();
+        }
+    }
+
+    template() {
+        return null;
+    }
+
+    html(strs, ...items) {
+        return new GapTpl(strs, ...items);
     }
 
     // deprecated

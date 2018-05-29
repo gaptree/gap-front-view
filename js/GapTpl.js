@@ -1,11 +1,11 @@
-import {createElem} from '../../lib/createElem';
-import {toFrag} from '../../lib/toFrag';
+import {createElem} from './lib/createElem';
+import {toFrag} from './lib/toFrag';
 import {
     createNodeHolder,
     createFunHolder,
     createTextHolder,
     getNode
-} from '../holder';
+} from './lib/holder';
 
 export class GapTpl {
     constructor(strs, ...items) {
