@@ -3,7 +3,7 @@ import {toFrag} from './lib/toFrag';
 import {compile} from './lib/compile';
 import {deepAssign} from './lib/deepAssign';
 import {GapTpl} from './GapTpl';
-import {Proxy} from './Proxy';
+import {GapProxy} from './GapProxy';
 
 let viewIndex = 1;
 
@@ -11,16 +11,18 @@ export class View {
     static get tag() { return null; }
 
     constructor(data = {}) {
-        this.data = new Proxy();
+        this.data = new GapProxy();
         this.vid = 'gv' + viewIndex++;
         if (this.constructor.tag) {
             this.ctn = createElem(this.constructor.tag);
         }
         this.tpl = this.template();
 
+        /*
         if (this.tpl) {
             compile(this.data, this.tpl);
         }
+        */
 
         if (data) {
             this.update(data);
@@ -85,7 +87,9 @@ export class View {
     }
 
     html(strs, ...items) {
-        return new GapTpl(strs, ...items);
+        const tpl = new GapTpl(strs, ...items);
+        compile(this.data, tpl);
+        return tpl;
     }
 
     // deprecated

@@ -1,8 +1,10 @@
 const nodes = [];
 const funs = [];
+const views = [];
 
 let nodeIndex = 0;
 let funIndex = 0;
+let viewIndex = 0;
 
 export const createNodeHolder = (node) => {
     nodes[nodeIndex] = node;
@@ -29,6 +31,20 @@ export const getFun = (index) => {
     }
     return funs[arrIndex];
 };
+
+export const createViewHolder = (view) => {
+    views[viewIndex] = view;
+    return '"##' + viewIndex++ + '##"';
+};
+
+export const getView = (index) => {
+    const arrIndex = parseInt(index.replace(/^"?##|##"?$/g, ''));
+    if (isNaN(arrIndex)) {
+        throw new Error('Error index format: ' + index);
+    }
+    return views[arrIndex];
+};
+
 
 export const createTextHolder = (key) => {
     return `<gap-text bind="${key}"></gap-text>`;

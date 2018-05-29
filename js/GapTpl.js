@@ -1,8 +1,10 @@
 import {createElem} from './lib/createElem';
+import {View} from './View';
 import {toFrag} from './lib/toFrag';
 import {
     createNodeHolder,
     createFunHolder,
+    createViewHolder,
     createTextHolder,
     getNode
 } from './lib/holder';
@@ -54,9 +56,11 @@ export class GapTpl {
                 str = item.map(sub => toStr(sub)).join('');
             } else if (typeof item === 'function') {
                 str = createFunHolder(item);
-            } else if (item.elem instanceof Node) {
-                str = createNodeHolder(item.elem);
-            } else if (Array.isArray(item.elems)) {
+            } else if (item instanceof Node) {
+                str = createNodeHolder(item);
+            } else if (item instanceof View) {
+                str = createViewHolder(item);
+            } else if (item instanceof GapTpl) {
                 str = item.elems.map(sub => toStr(sub)).join('');
             } else {
                 str = item;

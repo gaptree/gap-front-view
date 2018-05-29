@@ -1,5 +1,8 @@
 import {ElemPropBinder} from './binder/ElemPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
+import {ViewBinder} from './binder/ViewBinder';
+import {deepAssign} from './lib/deepAssign';
+import {GapProxy} from './GapProxy';
 
 export class DescriptorWrap {
     constructor() {
@@ -17,7 +20,15 @@ export class DescriptorWrap {
                 return this.val;
             },
             set: (val) => {
-                this.val = val;
+                if (this.val && this.val instanceof GapProxy) {
+                    // todo
+                    // this.val: {a: 1, b: 2}
+                    // val: {a: 11}
+                    // this.val should be {a: 11, b: null} ?
+                    deepAssign(this.val, val);
+                } else {
+                    this.val = val;
+                }
                 this.binders.forEach(binder => binder.update(val));
             }
         };
@@ -32,6 +43,13 @@ export class DescriptorWrap {
     bindElem(elem) {
         if (elem.tagName === 'GAP-TEXT') {
             this.binders.push(new TextNodeBinder(elem));
+            return;
+        }
+
+        if (elem.tagName === 'GAP-VIEW') {
+            const viewBinder = new ViewBinder(elem);
+            this.binders.push(viewBinder);
+            this.val = viewBinder.getProxy();
             return;
         }
     }

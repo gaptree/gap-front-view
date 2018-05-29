@@ -1,6 +1,6 @@
 import {DescriptorWrap} from './DescriptorWrap';
 
-export class Proxy {
+export class GapProxy {
     constructor() {
         this.descriptorWraps = {};
     }
@@ -23,7 +23,7 @@ export class Proxy {
         }
 
         this.getDescriptorWrap(prop)
-            .setVal(new Proxy());
+            .setVal(new GapProxy());
         return this[prop];
     }
 
