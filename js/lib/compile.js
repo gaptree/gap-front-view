@@ -8,6 +8,12 @@ export const compile = (data, tpl) => {
             return;
         }
 
+        if (elem._compiled) {
+            return;
+        }
+
+        elem._compiled = true;
+
         const toRemoves = [];
 
         for (const attr of elem.attributes) {
