@@ -8,6 +8,7 @@ import {ElemBinder} from './binder/ElemBinder';
 export class DescriptorWrap {
     constructor(proxy) {
         this.binders = [];
+        this.triggers = [];
         this.val;
         this.proxy = proxy;
     }
@@ -39,6 +40,10 @@ export class DescriptorWrap {
         return this._descriptor;
     }
 
+    addTrigger(trigger) {
+        this.triggers.push(trigger);
+    }
+
     bindElemProp(elem, prop) {
         this.binders.push(new ElemPropBinder(elem, prop));
     }
@@ -68,6 +73,7 @@ export class DescriptorWrap {
 
     changed(val) {
         this.binders.forEach(binder => binder.update(val));
+        this.triggers.forEach(trigger => trigger(val));
         this.proxy.changed();
     }
 
