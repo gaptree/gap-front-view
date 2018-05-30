@@ -2,7 +2,13 @@ import {DescriptorWrap} from './DescriptorWrap';
 
 export class GapProxy {
     constructor() {
-        this.descriptorWraps = {};
+        Object.defineProperty(this, 'descriptorWraps', {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: {}
+        });
+        //this.descriptorWraps = {};
     }
 
     getDescriptorWrap(prop) {
