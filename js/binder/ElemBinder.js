@@ -42,8 +42,8 @@ export class ElemBinder {
         const itemProxy = this.getProxy().getProxy(key);
         if (!itemProxy.tpl) {
             const tpl = this.tplBilder();
-            compile(itemProxy, tpl);
             this.elem.appendChild(tpl.frag);
+            compile(itemProxy, tpl);
             itemProxy.tpl = tpl;
         }
         itemProxy.update({

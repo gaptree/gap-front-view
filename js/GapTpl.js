@@ -11,6 +11,7 @@ import {
 
 export class GapTpl {
     constructor(strs, ...items) {
+        this.views = [];
         this.ctn = createElem('div');
         this.ctn.innerHTML = this.html(strs, ...items);
 
@@ -19,6 +20,11 @@ export class GapTpl {
             const node = getNode(nodeId);
             holder.replace(node);
         });
+    }
+
+    createViewHolder(view) {
+        this.views.push(view);
+        return createViewHolder(view);
     }
 
     get elems() {
@@ -39,6 +45,7 @@ export class GapTpl {
 
     remove() {
         this.elems.forEach(elem => elem.remove());
+        this.views.forEach(view => view.remove());
     }
 
     html(strs, ...items) {
@@ -59,7 +66,7 @@ export class GapTpl {
             } else if (item instanceof Node) {
                 str = createNodeHolder(item);
             } else if (item instanceof View) {
-                str = createViewHolder(item);
+                str = this.createViewHolder(item);
             } else if (item instanceof GapTpl) {
                 str = item.elems.map(sub => toStr(sub)).join('');
             } else {
