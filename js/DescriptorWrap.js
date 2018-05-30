@@ -1,13 +1,15 @@
+//import {deepAssign} from './lib/deepAssign';
+//import {GapProxy} from './GapProxy';
 import {ElemPropBinder} from './binder/ElemPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
 import {ViewBinder} from './binder/ViewBinder';
-import {deepAssign} from './lib/deepAssign';
-import {GapProxy} from './GapProxy';
+import {ElemBinder} from './binder/ElemBinder';
 
 export class DescriptorWrap {
-    constructor() {
+    constructor(proxy) {
         this.binders = [];
         this.val;
+        this.proxy = proxy;
     }
 
     getDescriptor() {
@@ -19,17 +21,18 @@ export class DescriptorWrap {
             get: () => {
                 return this.val;
             },
-            set: (val) => {
-                if (this.val && this.val instanceof GapProxy) {
+            set: (inVal) => {
+                if (this.val && this.val.update) {
                     // todo
                     // this.val: {a: 1, b: 2}
                     // val: {a: 11}
                     // this.val should be {a: 11, b: null} ?
-                    deepAssign(this.val, val);
+                    this.val.update(inVal);
                 } else {
-                    this.val = val;
+                    this.val = inVal;
                 }
-                this.binders.forEach(binder => binder.update(val));
+
+                this.changed(inVal);
             }
         };
 
@@ -49,12 +52,28 @@ export class DescriptorWrap {
         if (elem.tagName === 'GAP-VIEW') {
             const viewBinder = new ViewBinder(elem);
             this.binders.push(viewBinder);
-            this.val = viewBinder.getProxy();
+            this.linkProxy(viewBinder.getProxy());
             return;
         }
+
+        const elemBinder = new ElemBinder(elem);
+        this.binders.push(elemBinder);
+        this.linkProxy(elemBinder.getProxy());
+        //this.val = elemBinder.getProxy();
     }
 
     setVal(val) {
         this.val = val;
+    }
+
+    changed(val) {
+        this.binders.forEach(binder => binder.update(val));
+        this.proxy.changed();
+    }
+
+    linkProxy(proxy) {
+        this.val = proxy;
+        // todo
+        //proxy.onChanged(() => this.changed(proxy));
     }
 }

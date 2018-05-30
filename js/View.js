@@ -1,7 +1,6 @@
 import {createElem} from './lib/createElem';
 import {toFrag} from './lib/toFrag';
 import {compile} from './lib/compile';
-import {deepAssign} from './lib/deepAssign';
 import {GapTpl} from './GapTpl';
 import {GapProxy} from './GapProxy';
 
@@ -18,11 +17,9 @@ export class View {
         }
         this.tpl = this.template();
 
-        /*
         if (this.tpl) {
             compile(this.data, this.tpl);
         }
-        */
 
         if (data) {
             this.update(data);
@@ -35,7 +32,7 @@ export class View {
     }
 
     update(data) {
-        deepAssign(this.data, data);
+        this.data.update(data);
     }
 
     get elems() {
@@ -88,7 +85,7 @@ export class View {
 
     html(strs, ...items) {
         const tpl = new GapTpl(strs, ...items);
-        compile(this.data, tpl);
+        //compile(this.data, tpl);
         return tpl;
     }
 

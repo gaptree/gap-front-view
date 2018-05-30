@@ -10,7 +10,7 @@ export class GapProxy {
             return this.descriptorWraps[prop];
         }
 
-        const descriptorWrap = new DescriptorWrap();
+        const descriptorWrap = new DescriptorWrap(this);
         this.descriptorWraps[prop] = descriptorWrap;
         Object.defineProperty(this, prop, descriptorWrap.getDescriptor());
 
@@ -22,8 +22,9 @@ export class GapProxy {
             return this[prop];
         }
 
-        this.getDescriptorWrap(prop)
-            .setVal(new GapProxy());
+        const proxy = new GapProxy();
+        const descriptor = this.getDescriptorWrap(prop);
+        descriptor.linkProxy(proxy);
         return this[prop];
     }
 
@@ -41,5 +42,30 @@ export class GapProxy {
 
         const proxy = this.getProxyByArr(props);
         return proxy.getDescriptorWrap(lastProp);
+    }
+
+    update(data) {
+        if (data instanceof Object) {
+            for (const key in data) {
+                if (!this.hasOwnProperty(key)) {
+                    continue;
+                }
+
+                const item = data[key];
+                this.getDescriptorWrap(key);
+                this[key] = item;
+            }
+            return;
+        }
+    }
+
+    changed() {
+        if (this.handleChanged) {
+            this.handleChanged();
+        }
+    }
+
+    onChanged(handle) {
+        this.handleChanged = handle;
     }
 }

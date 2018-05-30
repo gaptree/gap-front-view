@@ -25,6 +25,10 @@ export const createFunHolder = (fun) => {
 };
 
 export const getFun = (index) => {
+    if (!index) {
+        return null;
+    }
+
     const arrIndex = parseInt(index.replace(/^"?\$\$|\$\$"?$/g, ''));
     if (isNaN(arrIndex)) {
         throw new Error('Error index format: ' + index);
@@ -38,6 +42,10 @@ export const createViewHolder = (view) => {
 };
 
 export const getView = (index) => {
+    if (!index) {
+        return null;
+    }
+
     const arrIndex = parseInt(index.replace(/^"?##|##"?$/g, ''));
     if (isNaN(arrIndex)) {
         throw new Error('Error index format: ' + index);
