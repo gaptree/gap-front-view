@@ -1,10 +1,28 @@
 import {parseVal} from '../lib/parseVal';
-import {getView} from '../lib/holder';
+import {getView, getFun} from '../lib/holder';
 
 export class ViewBinder {
     constructor(elem) {
         this.view = getView(elem.getAttribute('view'));
         elem.replace(this.view.frag);
+
+        for (const attr of elem.attributes) {
+            const attrName = attr.name;
+            const attrVal = attr.value;
+
+            const sepIndex = attrName.indexOf('-');
+
+            if (sepIndex <= 0) {
+                continue;
+            }
+
+            const pre = attrName.substr(0, sepIndex);
+            const type = attrName.substr(sepIndex + 1);
+
+            if (pre === 'on') {
+                this.view.on(type, () => getFun(attrVal)(this.view));
+            }
+        }
     }
 
     getProxy() {

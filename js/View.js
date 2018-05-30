@@ -1,3 +1,4 @@
+import {GapEvent} from 'gap-front-event';
 import {createElem} from './lib/createElem';
 import {toFrag} from './lib/toFrag';
 import {compile} from './lib/compile';
@@ -11,6 +12,8 @@ export class View {
 
     constructor(data = {}) {
         this.data = new GapProxy();
+        this.event = new GapEvent();
+
         this.vid = 'gv' + viewIndex++;
         if (this.constructor.tag) {
             this.ctn = createElem(this.constructor.tag);
@@ -29,6 +32,14 @@ export class View {
         this.init();
         this.render();
         this.startup();
+    }
+
+    on(evtName, handle) {
+        this.event.on(evtName, handle);
+    }
+
+    trigger(evtName, ...args) {
+        this.event.trigger(evtName, ...args);
     }
 
     update(data) {
