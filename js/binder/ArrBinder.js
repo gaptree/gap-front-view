@@ -47,7 +47,7 @@ export class ArrBinder extends BinderBase {
         if (this.itemFilterHandle) {
             return this.itemFilterHandle(item);
         }
-        return item;
+        return true;
     }
 
     itemKey(item) {
