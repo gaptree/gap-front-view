@@ -1,12 +1,13 @@
-import {parseVal} from '../lib/parseVal';
+import {BinderBase} from './BinderBase';
 
-export class TextNodeBinder {
+export class TextNodeBinder extends BinderBase {
     constructor(elem) {
+        super();
         this.elem = elem;
     }
 
     update(val) {
-        const textNode = document.createTextNode(parseVal(val));
+        const textNode = document.createTextNode(this.parseVal(val));
         this.elem.replace(textNode);
         this.elem = textNode;
     }

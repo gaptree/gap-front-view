@@ -1,6 +1,15 @@
 import {getFun} from './holder';
 //import {bindElemProp} from './bindElemProp';
 
+const parseDataProp = (inProp) => {
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+    const [name, filterStr] = inProp.split('|');
+    const filter = filterStr
+        && filterStr.indexOf('$$') === 0
+        && getFun(filterStr);
+    return {name, filter};
+};
+
 export const compile = (data, tpl) => {
 
     const compileNode = (node) => {
@@ -26,13 +35,15 @@ export const compile = (data, tpl) => {
     };
 
     const compileGapView = (node) => {
-        const bindProp = node.getAttribute('bind');
-        data.descriptor(bindProp).bindGapView(node);
+        const dataProp = parseDataProp(node.getAttribute('bind'));
+        data.descriptor(dataProp.name)
+            .bindGapView(node, dataProp.filter);
     };
 
     const compileGapText = (node) => {
-        const bindProp = node.getAttribute('bind');
-        data.descriptor(bindProp).bindGapText(node);
+        const dataProp = parseDataProp(node.getAttribute('bind'));
+        data.descriptor(dataProp.name)
+            .bindGapText(node, dataProp.filter);
     };
 
     const compileElem = (elem) => {
@@ -43,7 +54,9 @@ export const compile = (data, tpl) => {
             const attrVal = attr.value;
 
             if (attrName === 'arr' || attrName === 'array') {
-                data.descriptor(attrVal).bindArr(elem);
+                const dataProp = parseDataProp(attrVal);
+                data.descriptor(dataProp.name)
+                    .bindArr(elem, dataProp.filter);
                 continue;
             }
 
@@ -69,8 +82,9 @@ export const compile = (data, tpl) => {
                 elem.cb(type, getFun(attrVal));
                 toRemoves.push(attrName);
             } else if (pre === 'bind') {
-                data.descriptor(attrVal)
-                    .bindElemProp(elem, type);
+                const dataProp = parseDataProp(attrVal);
+                data.descriptor(dataProp.name)
+                    .bindElemProp(elem, type, dataProp.filter);
                 toRemoves.push(attrName);
             } else if (pre === 'trigger') {
                 data.descriptor(type.replace(/-/gi, '.'))

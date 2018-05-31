@@ -1,4 +1,4 @@
-import {parseVal} from '../lib/parseVal';
+import {BinderBase} from './BinderBase';
 
 const elemProps = [
     'id',
@@ -6,13 +6,14 @@ const elemProps = [
     'checked'
 ];
 
-export class ElemPropBinder {
+export class ElemPropBinder extends BinderBase {
     constructor(elem, prop) {
+        super();
+
         this.elem = elem;
         this.prop = prop;
 
         this.handler;
-
         if (prop === 'val' || prop === 'value') {
             this.handler = this.getValueHandler();
         } else if (prop === 'html') {
@@ -24,6 +25,13 @@ export class ElemPropBinder {
         } else {
             this.handler = this.getAttrHandler();
         }
+    }
+
+    filter(val) {
+        if (this.handleFilter) {
+            return this.handleFilter(val);
+        }
+        return val;
     }
 
     update(val) {
@@ -61,9 +69,5 @@ export class ElemPropBinder {
                 this.parseVal(val)
             );
         };
-    }
-
-    parseVal(inVal) {
-        return parseVal(inVal);
     }
 }

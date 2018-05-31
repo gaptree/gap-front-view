@@ -6,11 +6,11 @@ import {ViewBinder} from './binder/ViewBinder';
 import {ArrBinder} from './binder/ArrBinder';
 
 export class DescriptorWrap {
-    constructor(proxy) {
+    constructor(parentProxy) {
         this.binders = [];
         this.triggers = [];
         this.val;
-        this.proxy = proxy;
+        this.parentProxy = parentProxy;
     }
 
     getDescriptor() {
@@ -44,46 +44,27 @@ export class DescriptorWrap {
         this.triggers.push(trigger);
     }
 
-    bindElemProp(elem, prop) {
-        this.binders.push(new ElemPropBinder(elem, prop));
+    bindElemProp(elem, prop, filter) {
+        this.binders.push((new ElemPropBinder(elem, prop).onFilter(filter)));
     }
 
-    bindGapView(elem) {
+    bindGapView(elem, filter) {
         const viewBinder = new ViewBinder(elem);
+        viewBinder.onFilter(filter);
         this.binders.push(viewBinder);
         this.linkProxy(viewBinder.getProxy());
     }
 
-    bindGapText(elem) {
-        this.binders.push(new TextNodeBinder(elem));
+    bindGapText(elem, filter) {
+        this.binders.push((new TextNodeBinder(elem)).onFilter(filter));
     }
 
-    bindArr(elem) {
+    bindArr(elem, filter) {
         const arrBinder = new ArrBinder(elem);
+        arrBinder.onFilter(filter);
         this.binders.push(arrBinder);
         this.linkProxy(arrBinder.getProxy());
     }
-
-    /*
-    bindElem(elem) {
-        if (elem.tagName === 'GAP-TEXT') {
-            this.binders.push(new TextNodeBinder(elem));
-            return;
-        }
-
-        if (elem.tagName === 'GAP-VIEW') {
-            const viewBinder = new ViewBinder(elem);
-            this.binders.push(viewBinder);
-            this.linkProxy(viewBinder.getProxy());
-            return;
-        }
-
-        const elemBinder = new ElemBinder(elem);
-        this.binders.push(elemBinder);
-        this.linkProxy(elemBinder.getProxy());
-        //this.val = elemBinder.getProxy();
-    }
-    */
 
     setVal(val) {
         this.val = val;
@@ -92,12 +73,12 @@ export class DescriptorWrap {
     changed(val) {
         this.binders.forEach(binder => binder.update(val));
         this.triggers.forEach(trigger => trigger(val));
-        this.proxy.changed();
+        this.parentProxy.changed();
     }
 
     linkProxy(proxy) {
         this.val = proxy;
         // todo
-        //proxy.onChanged(() => this.changed(proxy));
+        proxy.onChanged(() => this.changed(proxy));
     }
 }

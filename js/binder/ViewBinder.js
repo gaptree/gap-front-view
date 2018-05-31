@@ -1,8 +1,10 @@
-import {parseVal} from '../lib/parseVal';
 import {getView, getFun} from '../lib/holder';
+import {BinderBase} from './BinderBase';
 
-export class ViewBinder {
+export class ViewBinder extends BinderBase {
     constructor(elem) {
+        super();
+
         this.view = getView(elem.getAttribute('view'));
 
         const toRemoves = [];
@@ -40,7 +42,10 @@ export class ViewBinder {
     }
 
     update(inVal) {
-        const val = parseVal(inVal);
+        if (inVal.descriptorWraps) {
+            return;
+        }
+        const val = this.parseVal(inVal);
         this.view.update(val);
     }
 }

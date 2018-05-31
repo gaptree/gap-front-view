@@ -1,12 +1,14 @@
 import {getFun} from '../lib/holder';
-import {parseVal} from '../lib/parseVal';
 import {compile} from '../lib/compile';
 import {GapProxy} from '../GapProxy';
+import {BinderBase} from './BinderBase';
 
-export class ArrBinder {
-    constructor(elem) {
-        this.isCompiled = false;
+export class ArrBinder extends BinderBase {
+    constructor(elem, handleFilter) {
+        super();
+        //this.isCompiled = false;
         this.elem = elem;
+        this.handleFilter = handleFilter;
         this.bind = this.elem.getAttribute('arr') || this.elem.getAttribute('array');
         this.type = this.elem.getAttribute('type');
         this.itemAs = this.elem.getAttribute('item-as');
@@ -58,8 +60,13 @@ export class ArrBinder {
     }
 
     update(inVal) {
-        const val = parseVal(inVal);
-        val.forEach(item => this.buildItem(item));
+        const val = this.parseVal(inVal);
+        val.forEach(item => {
+            if (item.descriptorWraps) {
+                return;
+            }
+            this.buildItem(item);
+        });
 
         /*
         if (!this.filter(val)) {

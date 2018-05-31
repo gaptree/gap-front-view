@@ -5,6 +5,7 @@ import {
     createNodeHolder,
     createFunHolder,
     createViewHolder,
+    createObjHolder,
     createTextHolder,
     getNode
 } from './lib/holder';
@@ -69,6 +70,8 @@ export class GapTpl {
                 str = this.createViewHolder(item);
             } else if (item instanceof GapTpl) {
                 str = item.elems.map(sub => toStr(sub)).join('');
+            } else if (item instanceof Object) {
+                str = createObjHolder(item);
             } else {
                 str = item;
             }

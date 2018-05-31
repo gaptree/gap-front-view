@@ -19,9 +19,9 @@ export const getNode = (inputId) => {
     return nodes[id];
 };
 
-export const createFunHolder = (fun) => {
+export const createFunHolder = (fun, wrapper = '"') => {
     funs[funIndex] = fun;
-    return '"$$' + funIndex++ + '$$"';
+    return wrapper + '$$' + funIndex++ + '$$' + wrapper;
 };
 
 export const getFun = (index) => {
@@ -34,6 +34,19 @@ export const getFun = (index) => {
         throw new Error('Error index format: ' + index);
     }
     return funs[arrIndex];
+};
+
+export const createObjHolder = (obj) => {
+    return '"' + Object.keys(obj).map(key => {
+        const val = obj[key];
+        if (typeof val === 'function') {
+            return key + '|' + createFunHolder(val, '');
+        } else if (typeof val === 'string') {
+            return key + '|' + val;
+        }
+
+        throw new Error('error obj format');
+    }).join(';') + '"';
 };
 
 export const createViewHolder = (view) => {
@@ -54,6 +67,7 @@ export const getView = (index) => {
 };
 
 
-export const createTextHolder = (key) => {
+export const createTextHolder = (inKey) => {
+    const key = inKey.replace(/^"?|"?$/g, '');
     return `<gap-text bind="${key}"></gap-text>`;
 };
