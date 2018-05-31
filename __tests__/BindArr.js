@@ -4,7 +4,7 @@ class UserListView extends View {
     template() {
         return this.html`
         <div
-            bind="users"
+            arr="users"
             item-as="user"
             item-key=${user => user.name}
             item-filter=${user => user.age > 18}

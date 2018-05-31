@@ -3,18 +3,18 @@ import {parseVal} from '../lib/parseVal';
 import {compile} from '../lib/compile';
 import {GapProxy} from '../GapProxy';
 
-export class ElemBinder {
+export class ArrBinder {
     constructor(elem) {
         this.isCompiled = false;
         this.elem = elem;
-        this.bind = this.elem.getAttribute('bind');
+        this.bind = this.elem.getAttribute('arr') || this.elem.getAttribute('array');
         this.type = this.elem.getAttribute('type');
         this.itemAs = this.elem.getAttribute('item-as');
         this.tplBilder = getFun(this.elem.innerHTML.trim());
         this.itemFilter = getFun(this.elem.getAttribute('item-filter'));
         this.itemKey = getFun(this.elem.getAttribute('item-key'));
 
-        ['bind', 'type', 'filter', 'item-key', 'item-filter', 'item-as']
+        ['arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as']
             .forEach(attrName => this.elem.removeAttribute(attrName));
         this.elem.innerHTML = '';
 

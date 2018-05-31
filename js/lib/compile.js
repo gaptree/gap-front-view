@@ -3,25 +3,47 @@ import {getFun} from './holder';
 
 export const compile = (data, tpl) => {
 
+    const compileNode = (node) => {
+        if (!node.attributes) {
+            return;
+        }
+
+        if (node._compiled) {
+            return;
+        }
+
+        node._compiled = true;
+
+        if (node.tagName === 'GAP-VIEW') {
+            compileGapView(node);
+        } else if (node.tagName === 'GAP-TEXT') {
+            compileGapText(node);
+        } else {
+            compileElem(node);
+        }
+
+        compileNodeCollection(node.children);
+    };
+
+    const compileGapView = (node) => {
+        const bindProp = node.getAttribute('bind');
+        data.descriptor(bindProp).bindGapView(node);
+    };
+
+    const compileGapText = (node) => {
+        const bindProp = node.getAttribute('bind');
+        data.descriptor(bindProp).bindGapText(node);
+    };
+
     const compileElem = (elem) => {
-        if (!elem.attributes) {
-            return;
-        }
-
-        if (elem._compiled) {
-            return;
-        }
-
-        elem._compiled = true;
-
         const toRemoves = [];
 
         for (const attr of elem.attributes) {
             const attrName = attr.name;
             const attrVal = attr.value;
 
-            if (attrName === 'bind') {
-                data.descriptor(attrVal).bindElem(elem);
+            if (attrName === 'arr' || attrName === 'array') {
+                data.descriptor(attrVal).bindArr(elem);
                 continue;
             }
 
@@ -57,17 +79,15 @@ export const compile = (data, tpl) => {
         }
 
         toRemoves.forEach(attr => elem.removeAttribute(attr));
-
-        compileElemCollection(elem.children);
     };
 
-    const compileElemCollection = (elemCollection) => {
-        for (const elem of elemCollection) {
-            compileElem(elem);
+    const compileNodeCollection = (nodeCollection) => {
+        for (const node of nodeCollection) {
+            compileNode(node);
         }
     };
 
     for (const tplElem of tpl.elems) {
-        compileElem(tplElem);
+        compileNode(tplElem);
     }
 };

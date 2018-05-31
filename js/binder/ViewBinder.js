@@ -9,6 +9,10 @@ export class ViewBinder {
             const attrName = attr.name;
             const attrVal = attr.value;
 
+            if (attrName === 'ref') {
+                getFun(attrVal)(this.view);
+            }
+
             const sepIndex = attrName.indexOf('-');
 
             if (sepIndex <= 0) {
@@ -20,10 +24,6 @@ export class ViewBinder {
 
             if (pre === 'on') {
                 this.view.on(type, () => getFun(attrVal)(this.view));
-            }
-
-            if (attrName === 'ref') {
-                getFun(attrVal)(this.view);
             }
         }
 

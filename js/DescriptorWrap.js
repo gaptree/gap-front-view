@@ -3,7 +3,7 @@
 import {ElemPropBinder} from './binder/ElemPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
 import {ViewBinder} from './binder/ViewBinder';
-import {ElemBinder} from './binder/ElemBinder';
+import {ArrBinder} from './binder/ArrBinder';
 
 export class DescriptorWrap {
     constructor(proxy) {
@@ -48,6 +48,23 @@ export class DescriptorWrap {
         this.binders.push(new ElemPropBinder(elem, prop));
     }
 
+    bindGapView(elem) {
+        const viewBinder = new ViewBinder(elem);
+        this.binders.push(viewBinder);
+        this.linkProxy(viewBinder.getProxy());
+    }
+
+    bindGapText(elem) {
+        this.binders.push(new TextNodeBinder(elem));
+    }
+
+    bindArr(elem) {
+        const arrBinder = new ArrBinder(elem);
+        this.binders.push(arrBinder);
+        this.linkProxy(arrBinder.getProxy());
+    }
+
+    /*
     bindElem(elem) {
         if (elem.tagName === 'GAP-TEXT') {
             this.binders.push(new TextNodeBinder(elem));
@@ -66,6 +83,7 @@ export class DescriptorWrap {
         this.linkProxy(elemBinder.getProxy());
         //this.val = elemBinder.getProxy();
     }
+    */
 
     setVal(val) {
         this.val = val;
