@@ -20,13 +20,13 @@ export const compile = (data, tpl) => {
             const attrName = attr.name;
             const attrVal = attr.value;
 
-            if (attrName === 'ref') {
-                getFun(attrVal)(elem);
+            if (attrName === 'bind') {
+                data.descriptor(attrVal).bindElem(elem);
                 continue;
             }
 
-            if (attrName === 'bind') {
-                data.descriptor(attrVal).bindElem(elem);
+            if (attrName === 'ref') {
+                getFun(attrVal)(elem);
                 continue;
             }
 

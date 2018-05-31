@@ -4,7 +4,6 @@ import {getView, getFun} from '../lib/holder';
 export class ViewBinder {
     constructor(elem) {
         this.view = getView(elem.getAttribute('view'));
-        elem.replace(this.view.frag);
 
         for (const attr of elem.attributes) {
             const attrName = attr.name;
@@ -22,7 +21,13 @@ export class ViewBinder {
             if (pre === 'on') {
                 this.view.on(type, () => getFun(attrVal)(this.view));
             }
+
+            if (attrName === 'ref') {
+                getFun(attrVal)(this.view);
+            }
         }
+
+        elem.replace(this.view.frag);
     }
 
     getProxy() {
