@@ -5,12 +5,15 @@ export class ViewBinder {
     constructor(elem) {
         this.view = getView(elem.getAttribute('view'));
 
+        const toRemoves = [];
         for (const attr of elem.attributes) {
             const attrName = attr.name;
             const attrVal = attr.value;
 
             if (attrName === 'ref') {
                 getFun(attrVal)(this.view);
+                toRemoves.push(attrName);
+                continue;
             }
 
             const sepIndex = attrName.indexOf('-');
@@ -24,9 +27,11 @@ export class ViewBinder {
 
             if (pre === 'on') {
                 this.view.on(type, () => getFun(attrVal)(this.view));
+                toRemoves.push(attrName);
             }
         }
 
+        toRemoves.forEach(attrName => elem.removeAttribute(attrName));
         elem.replace(this.view.frag);
     }
 

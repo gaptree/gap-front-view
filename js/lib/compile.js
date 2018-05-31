@@ -49,6 +49,7 @@ export const compile = (data, tpl) => {
 
             if (attrName === 'ref') {
                 getFun(attrVal)(elem);
+                toRemoves.push(attrName);
                 continue;
             }
 
@@ -78,7 +79,7 @@ export const compile = (data, tpl) => {
             }
         }
 
-        toRemoves.forEach(attr => elem.removeAttribute(attr));
+        toRemoves.forEach(attrName => elem.removeAttribute(attrName));
     };
 
     const compileNodeCollection = (nodeCollection) => {
