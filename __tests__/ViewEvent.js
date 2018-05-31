@@ -7,10 +7,6 @@ class UserView extends View {
         <div class="user">$${'name'} - $${'address'}</div>
         `;
     }
-
-    changeName() {
-        this.data.name = 'changed';
-    }
 }
 
 class BookView extends View {
@@ -22,15 +18,15 @@ class BookView extends View {
             <gap-view
                 view=${new UserView()}
                 bind="book.author"
-                on-change-name=${userView => this.changeUserName(userView)}
+                on-change-name=${name => this.changeUserName(name)}
             />
             </div>
         </div>
         `;
     }
 
-    changeUserName(userView) {
-        userView.changeName();
+    changeUserName(name) {
+        this.data.book.author.name = name;
     }
 }
 
@@ -51,7 +47,7 @@ test('view event', () => {
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">jack - yk</div>');
 
     const userView = getView('##0##');
-    userView.trigger('change-name');
+    userView.trigger('change-name', 'changed');
 
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">changed - yk</div>');
 });

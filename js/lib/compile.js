@@ -63,10 +63,10 @@ export const compile = (data, tpl) => {
             const type = attrName.substr(sepIndex + 1);
 
             if (pre === 'on') {
-                elem.on(type, (evt) => getFun(attrVal)(evt));
+                elem.on(type, getFun(attrVal));
                 toRemoves.push(attrName);
             } else if (pre === 'cb') {
-                elem.cb(type, (evt) => getFun(attrVal)(evt));
+                elem.cb(type, getFun(attrVal));
                 toRemoves.push(attrName);
             } else if (pre === 'bind') {
                 data.descriptor(attrVal)
@@ -74,7 +74,7 @@ export const compile = (data, tpl) => {
                 toRemoves.push(attrName);
             } else if (pre === 'trigger') {
                 data.descriptor(type.replace(/-/gi, '.'))
-                    .addTrigger((val) => getFun(attrVal)(val));
+                    .addTrigger(getFun(attrVal));
                 toRemoves.push(attrName);
             }
         }

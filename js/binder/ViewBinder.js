@@ -26,7 +26,7 @@ export class ViewBinder {
             const type = attrName.substr(sepIndex + 1);
 
             if (pre === 'on') {
-                this.view.on(type, () => getFun(attrVal)(this.view));
+                this.view.on(type, getFun(attrVal));
                 toRemoves.push(attrName);
             }
         }
