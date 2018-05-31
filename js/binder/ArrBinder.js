@@ -12,9 +12,10 @@ export class ArrBinder extends BinderBase {
         this.bind = this.elem.getAttribute('arr') || this.elem.getAttribute('array');
         this.type = this.elem.getAttribute('type');
         this.itemAs = this.elem.getAttribute('item-as');
-        this.tplBilder = getFun(this.elem.innerHTML.trim());
-        this.itemFilter = getFun(this.elem.getAttribute('item-filter'));
-        this.itemKey = getFun(this.elem.getAttribute('item-key'));
+
+        this.tplBuilderHandle = getFun(this.elem.innerHTML.trim());
+        this.itemFilterHandle = getFun(this.elem.getAttribute('item-filter'));
+        this.itemKeyHandle = getFun(this.elem.getAttribute('item-key'));
 
         ['arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as']
             .forEach(attrName => this.elem.removeAttribute(attrName));
@@ -35,6 +36,27 @@ export class ArrBinder extends BinderBase {
         */
     }
 
+    tplBuilder(item) {
+        if (!this.tplBuilderHandle) {
+            throw new Error('cannot find tpl builder handle');
+        }
+        return this.tplBuilderHandle(item);
+    }
+
+    itemFilter(item) {
+        if (this.itemFilterHandle) {
+            return this.itemFilterHandle(item);
+        }
+        return item;
+    }
+
+    itemKey(item) {
+        if (!this.itemKeyHandle) {
+            throw new Error('cannot find item key  handle');
+        }
+        return this.itemKeyHandle(item);
+    }
+
     buildItem(item) {
         if (!this.itemFilter(item)) {
             return;
@@ -43,7 +65,7 @@ export class ArrBinder extends BinderBase {
         const key = this.itemKey(item);
         const itemProxy = this.getProxy().getProxy(key);
         if (!itemProxy.tpl) {
-            const tpl = this.tplBilder();
+            const tpl = this.tplBuilder();
             this.elem.appendChild(tpl.frag);
             compile(itemProxy, tpl);
             itemProxy.tpl = tpl;
