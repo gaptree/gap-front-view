@@ -47,6 +47,7 @@ export const compile = (data, tpl) => {
             } else if (pre === 'trigger') {
                 data.descriptor(type.replace(/-/gi, '.'))
                     .addTrigger((val) => getFun(attrVal)(elem, val));
+                toRemoves.push(attrName);
             }
         }
 
