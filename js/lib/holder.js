@@ -8,7 +8,7 @@ let viewIndex = 0;
 
 export const createNodeHolder = (node) => {
     nodes[nodeIndex] = node;
-    return `<gap-node node-id="${nodeIndex++}"/>`;
+    return `<gap-node node-id="${nodeIndex++}"></gap-node>`;
 };
 
 export const getNode = (inputId) => {
