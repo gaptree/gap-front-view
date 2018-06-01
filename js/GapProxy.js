@@ -54,6 +54,7 @@ export class GapProxy {
         if (data instanceof Object) {
             for (const key in data) {
                 if (!this.hasOwnProperty(key)) {
+                    this[key] = data[key];
                     continue;
                 }
 
