@@ -64,12 +64,11 @@ export class ArrBinder extends BinderBase {
 
         const key = this.itemKey(item);
         const itemProxy = this.getProxy().getProxy(key);
-        if (!itemProxy.tpl) {
-            const tpl = this.tplBuilder();
-            this.elem.appendChild(tpl.frag);
-            compile(itemProxy, tpl);
-            itemProxy.tpl = tpl;
-        }
+        const tpl = this.tplBuilder();
+        itemProxy.tpl = tpl;
+        this.elem.appendChild(tpl.frag);
+        compile(itemProxy, tpl);
+
         itemProxy.update({
             [this.itemAs]: item
         });
@@ -81,8 +80,19 @@ export class ArrBinder extends BinderBase {
         itemProxy.tpl && itemProxy.tpl.remove();
     }
 
+    clearElemChildren() {
+        this.elem.innerHTML = '';
+        /*
+        const div = document.createElement('div');
+        for (const elem of this.elem.children) {
+            div.appendChild(elem);
+        }
+        */
+    }
+
     update(inVal) {
         const val = this.parseVal(inVal);
+        this.clearElemChildren();
         val.forEach(item => {
             if (item.descriptorWraps) {
                 return;
