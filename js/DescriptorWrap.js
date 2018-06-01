@@ -73,12 +73,12 @@ export class DescriptorWrap {
     changed(val) {
         this.binders.forEach(binder => binder.update(val));
         this.triggers.forEach(trigger => trigger(val));
-        this.parentProxy.changed();
+        //this.parentProxy.changed();
     }
 
     linkProxy(proxy) {
         this.val = proxy;
         // todo
-        proxy.onChanged(() => this.changed(proxy));
+        //proxy.onChanged(() => this.changed(proxy));
     }
 }
