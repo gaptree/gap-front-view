@@ -1,7 +1,7 @@
 import {GapEvent} from 'gap-front-event';
 import {createElem} from './lib/createElem';
 import {toFrag} from './lib/toFrag';
-import {compile} from './lib/compile';
+//import {deepUpdate} from './lib/deepUpdate';
 import {GapTpl} from './GapTpl';
 import {GapProxy} from './GapProxy';
 
@@ -11,22 +11,19 @@ export class View {
     static get tag() { return null; }
 
     constructor(data = {}) {
-        this.data = new GapProxy();
+        this.data = data || {};
         this.event = new GapEvent();
-
         this.vid = 'gv' + viewIndex++;
+        this.proxy = new GapProxy(this.data);
+
         if (this.constructor.tag) {
             this.ctn = createElem(this.constructor.tag);
         }
         this.tpl = this.template();
-
         if (this.tpl) {
-            compile(this.data, this.tpl);
+            this.proxy.compile(this.tpl);
         }
-
-        if (data) {
-            this.update(data);
-        }
+        this.proxy.changed();
 
         // deprecated
         this.init();
@@ -34,16 +31,9 @@ export class View {
         this.startup();
     }
 
-    on(evtName, handle) {
-        this.event.on(evtName, handle);
-    }
-
-    trigger(evtName, ...args) {
-        this.event.trigger(evtName, ...args);
-    }
-
-    update(data) {
-        this.data.update(data);
+    update(inData) {
+        this.proxy.updateAll(inData);
+        //deepUpdate(this.data, inData);
     }
 
     get elems() {
@@ -71,6 +61,22 @@ export class View {
         return toFrag(this.elems);
     }
 
+    template() {
+        return null;
+    }
+
+    on(evtName, handle) {
+        this.event.on(evtName, handle);
+    }
+
+    trigger(evtName, ...args) {
+        this.event.trigger(evtName, ...args);
+    }
+
+    html(strs, ...items) {
+        return new GapTpl(strs, ...items);
+    }
+
     appendTo(node) {
         if (!(node instanceof Node)) {
             return;
@@ -79,28 +85,8 @@ export class View {
         node.appendChild(this.frag);
     }
 
-    remove() {
-        if (this.tpl) {
-            this.tpl.remove();
-            return;
-        }
 
-        if (this.ctn) {
-            this.ctn.remove();
-        }
-    }
-
-    template() {
-        return null;
-    }
-
-    html(strs, ...items) {
-        const tpl = new GapTpl(strs, ...items);
-        //compile(this.data, tpl);
-        return tpl;
-    }
-
-    // deprecated
+    // dprecated
     init() {}
     render() {}
     startup() {}

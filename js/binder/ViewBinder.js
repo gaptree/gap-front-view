@@ -37,15 +37,10 @@ export class ViewBinder extends BinderBase {
         elem.replace(this.view.frag);
     }
 
-    getProxy() {
-        return this.view.data;
-    }
-
     update(inVal) {
-        if (inVal.descriptorWraps) {
-            return;
-        }
         const val = this.parseVal(inVal);
-        this.view.update(val);
+        if (val) {
+            this.view.update(val);
+        }
     }
 }

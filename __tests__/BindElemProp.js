@@ -33,7 +33,6 @@ test('bind elem prop', () => {
     });
 
     userView.appendTo(document.body);
-
     const userIdInput = document.querySelector('[name="userId"]');
     const nameInput = document.querySelector('[name="name"]');
     const addressInput = document.querySelector('[name="address"]');

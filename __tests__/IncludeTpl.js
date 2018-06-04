@@ -38,5 +38,9 @@ test('include tpl', () => {
             }
         }
     });
-    expect(authorElem.innerHTML.trim()).toBe('<span>mike - china</span>');
+
+    expect(authorElem.innerHTML.trim()).toBe('<span>undefined - china</span>');
+
+    bookView.data.book.author.name = 'changed';
+    expect(authorElem.innerHTML.trim()).toBe('<span>changed - china</span>');
 });

@@ -6,6 +6,10 @@ class UserView extends View {
         <div class="user">$${'name'} - $${'address'}</div>
         `;
     }
+
+    setName(name) {
+        this.data.name = name;
+    }
 }
 
 class BookView extends View {
@@ -15,6 +19,7 @@ class BookView extends View {
             <span class="book-title">$${'book.title'}</span>
             <div class="book-author">
             <gap-view
+                ref=${view => this.userView = view}
                 view=${new UserView()}
                 bind="book.author"
             />
@@ -24,11 +29,11 @@ class BookView extends View {
     }
 
     setAuthor(author) {
-        this.data.book.author = author;
+        this.userView.update(author);
     }
 
     setAuthorName(name) {
-        this.data.book.author.name = name;
+        this.userView.setName(name);
     }
 }
 
@@ -48,6 +53,7 @@ test('bind view', () => {
 
     const bookTitleElem = document.querySelector('.book-title');
     const bookAuthorElem = document.querySelector('.book-author');
+
 
     expect(bookTitleElem.innerHTML.trim()).toBe('time history');
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">jack - yk</div>');

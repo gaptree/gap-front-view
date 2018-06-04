@@ -28,6 +28,7 @@ test('bind elem prop recursive', () => {
 
     expect(authorNameSpan.innerHTML).toBe('mike');
 
+
     bookView.setAuthorName('tom');
     expect(authorNameSpan.innerHTML).toBe('tom');
 
@@ -38,5 +39,9 @@ test('bind elem prop recursive', () => {
             }
         }
     });
+
+    //console.log(bookView.proxy.wraps);
+    //console.log(bookView.data.book.author);
+
     expect(authorNameSpan.innerHTML).toBe('sam');
 });

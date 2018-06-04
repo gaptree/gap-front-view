@@ -1,5 +1,4 @@
 import {View} from '../index';
-import {getView} from '../js/lib/holder';
 
 class UserView extends View {
     template() {
@@ -17,6 +16,7 @@ class BookView extends View {
             <div class="book-author">
             <gap-view
                 view=${new UserView()}
+                ref=${view => this.userView = view}
                 bind="book.author"
                 on-change-name=${name => this.changeUserName(name)}
             />
@@ -26,7 +26,7 @@ class BookView extends View {
     }
 
     changeUserName(name) {
-        this.data.book.author.name = name;
+        this.userView.data.name = name;
     }
 }
 
@@ -46,8 +46,7 @@ test('view event', () => {
     const bookAuthorElem = document.querySelector('.book-author');
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">jack - yk</div>');
 
-    const userView = getView('##0##');
-    userView.trigger('change-name', 'changed');
+    bookView.userView.trigger('change-name', 'changed');
 
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">changed - yk</div>');
 });

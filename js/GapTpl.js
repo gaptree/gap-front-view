@@ -1,10 +1,10 @@
 import {createElem} from './lib/createElem';
-import {View} from './View';
 import {toFrag} from './lib/toFrag';
+import {View} from './View';
 import {
     createNodeHolder,
-    createFunHolder,
     createViewHolder,
+    createFunHolder,
     createObjHolder,
     createTextHolder,
     getNode
@@ -23,11 +23,6 @@ export class GapTpl {
         });
     }
 
-    createViewHolder(view) {
-        this.views.push(view);
-        return createViewHolder(view);
-    }
-
     get elems() {
         if (this._elems) {
             return this._elems;
@@ -42,6 +37,11 @@ export class GapTpl {
 
     get frag() {
         return toFrag(this.elems);
+    }
+
+    createViewHolder(view) {
+        this.views.push(view);
+        return createViewHolder(view);
     }
 
     remove() {
@@ -59,7 +59,6 @@ export class GapTpl {
             }
 
             let str = '';
-
             if (Array.isArray(item)) {
                 str = item.map(sub => toStr(sub)).join('');
             } else if (typeof item === 'function') {
@@ -69,19 +68,18 @@ export class GapTpl {
             } else if (item instanceof View) {
                 str = this.createViewHolder(item);
             } else if (item instanceof GapTpl) {
-                str = item.elems.map(sub => toStr(sub)).join('');
+                str = item.elems.map(sub => createNodeHolder(sub)).join('');
             } else if (item instanceof Object) {
                 str = createObjHolder(item);
             } else {
                 str = item;
             }
-
             return str.trim();
         };
 
         items.forEach((item, index) => {
-            let lit = raw[index];
-            let val = toStr(item);
+            const lit = raw[index];
+            const val = toStr(item);
 
             if (lit.endsWith('$')) {
                 arr.push(lit.slice(0, -1));
