@@ -48,12 +48,15 @@ export class ArrBinder extends BinderBase {
 
         const key = this.itemKey(item);
         const itemProxy = this.getItemProxy(key);
+
         if (!itemProxy.tpl) {
             const tpl = this.tplBuilder(item);
             this.elem.appendChild(tpl.frag);
             itemProxy.compile(tpl);
             itemProxy.tpl = tpl;
             //itemProxy.changed();
+        } else {
+            this.elem.appendChild(itemProxy.tpl.frag);
         }
 
         itemProxy.updateAll({
