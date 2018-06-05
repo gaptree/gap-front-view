@@ -2,7 +2,7 @@ import {getFun} from './lib/holder';
 import {ElemPropBinder} from './binder/ElemPropBinder';
 import {ViewBinder} from './binder/ViewBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
-//import {ArrBinder} from './binder/ArrBinder';
+import {ArrBinder} from './binder/ArrBinder';
 import {GapWrap} from './GapWrap';
 
 const parseDataProp = (inProp) => {
@@ -25,16 +25,16 @@ export class GapProxy {
         this.deepUpdate(this.data, inData);
     }
 
-    deepUpdate(res, src) {
+    deepUpdate(res, inSrc) {
         if (!(res instanceof Object)) {
             return;
         }
 
-        if (!(src instanceof Object)) {
+        if (!(inSrc instanceof Object)) {
             return;
         }
 
-        //console.log(res, src);
+        const src = Object.assign({}, inSrc);
 
         this.startChange();
 
@@ -226,7 +226,7 @@ export class GapProxy {
             const attrVal = attr.value;
 
             if (attrName === 'arr' || attrName === 'array') {
-                //this.addBinder(attrVal, new ArrBinder(elem));
+                this.addBinder(attrVal, new ArrBinder(elem));
                 continue;
             }
 

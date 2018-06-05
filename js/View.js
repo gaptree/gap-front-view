@@ -61,6 +61,16 @@ export class View {
         return toFrag(this.elems);
     }
 
+    remove() {
+        if (this.tpl) {
+            this.tpl.remove();
+        }
+
+        if (this.ctn) {
+            this.ctn.remove();
+        }
+    }
+
     template() {
         return null;
     }

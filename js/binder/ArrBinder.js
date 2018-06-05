@@ -1,14 +1,12 @@
 import {getFun} from '../lib/holder';
-import {compile} from '../lib/compile';
+//import {compile} from '../lib/compile';
 import {GapProxy} from '../GapProxy';
 import {BinderBase} from './BinderBase';
 
 export class ArrBinder extends BinderBase {
-    constructor(elem, handleFilter) {
+    constructor(elem) {
         super();
-        //this.isCompiled = false;
         this.elem = elem;
-        this.handleFilter = handleFilter;
         this.bind = this.elem.getAttribute('arr') || this.elem.getAttribute('array');
         this.type = this.elem.getAttribute('type');
         this.itemAs = this.elem.getAttribute('item-as');
@@ -20,20 +18,6 @@ export class ArrBinder extends BinderBase {
         ['arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as']
             .forEach(attrName => this.elem.removeAttribute(attrName));
         this.elem.innerHTML = '';
-
-        /*
-         * todo
-        const tpl = this.getTpl();
-        const proxy = this.getProxy();
-        if (!this.isCompiled) {
-            compile(proxy, tpl);
-            this.isCompiled = true;
-            this.elem.appendChild(tpl.frag);
-        }
-        proxy.update({
-            [this.bind]: val
-        });
-        */
     }
 
     tplBuilder(item) {
@@ -63,84 +47,79 @@ export class ArrBinder extends BinderBase {
         }
 
         const key = this.itemKey(item);
-        const itemProxy = this.getProxy().getProxy(key);
-        const tpl = this.tplBuilder();
-        itemProxy.tpl = tpl;
-        this.elem.appendChild(tpl.frag);
-        compile(itemProxy, tpl);
+        const itemProxy = this.getItemProxy(key);
+        if (!itemProxy.tpl) {
+            const tpl = this.tplBuilder(item);
+            this.elem.appendChild(tpl.frag);
+            itemProxy.compile(tpl);
+            itemProxy.tpl = tpl;
+            //itemProxy.changed();
+        }
 
-        itemProxy.update({
+        itemProxy.updateAll({
             [this.itemAs]: item
         });
     }
 
-    removeItem(item) {
+    removeElem(item) {
         const key = this.itemKey(item);
-        const itemProxy = this.getProxy().getProxy(key);
+        const itemProxy = this.getItemProxy(key);
         itemProxy.tpl && itemProxy.tpl.remove();
     }
 
     clearElemChildren() {
         this.elem.innerHTML = '';
-        /*
-        const div = document.createElement('div');
-        for (const elem of this.elem.children) {
-            div.appendChild(elem);
-        }
-        */
+        this.itemProxies = {};
     }
 
     update(inVal) {
         const val = this.parseVal(inVal);
-        this.clearElemChildren();
-        val.forEach(item => {
-            if (item.descriptorWraps) {
-                return;
-            }
-            this.buildItem(item);
-        });
-
-        /*
-        if (!this.filter(val)) {
-            this.elem.hide();
+        if (val === undefined) {
             return;
         }
-        this.elem.show();
-        */
 
-        /*
-         * todo
-        const tpl = this.getTpl();
-        const proxy = this.getProxy();
-        if (!this.isCompiled) {
-            compile(proxy, tpl);
-            this.isCompiled = true;
-            this.elem.appendChild(tpl.frag);
-        }
-        proxy.update({
-            [this.bind]: val
+        this.inject(val);
+        this.clearElemChildren();
+        val.forEach(item => {
+            this.buildItem(item);
         });
-        */
     }
 
-    getProxy() {
-        if (this._proxy) {
-            return this._proxy;
-        }
-        this._proxy = new GapProxy();
-        this._proxy.add = (item) => this.buildItem(item);
-        this._proxy.remove = (item) => this.removeItem(item);
-        this._proxy.forEach = (handle) => {
-            Object.keys(this._proxy.descriptorWraps)
-                .forEach(key => handle(this._proxy[key][this.itemAs]));
+    inject(arr) {
+        arr.push = (...items) => {
+            Array.prototype.push.call(arr, ...items);
+            items.forEach(item => this.buildItem(item));
         };
-        this._proxy.filter = (handle) => {
-            this._proxy.forEach(item => {
-                if (!handle(item)) {
-                    this.removeItem(item);
+
+        arr.add = arr.push;
+        arr.removeElem = (item) => {
+            this.removeElem(item);
+        };
+
+        arr.pop = () => {
+            const item = Array.prototype.pop.call(arr);
+            this.removeElem(item);
+            return item;
+        };
+
+        arr.filter = (handle) => {
+            return Array.prototype.filter.call(arr, (item, index, array) => {
+                if (handle(item, index, array)) {
+                    return true;
                 }
+
+                this.removeElem(item);
+                return false;
             });
         };
-        return this._proxy;
+    }
+
+    getItemProxy(key) {
+        this.itemProxies = this.itemProxies || {};
+        if (this.itemProxies[key]) {
+            return this.itemProxies[key];
+        }
+        this.itemProxies[key] = new GapProxy();
+        return this.itemProxies[key];
     }
 }
