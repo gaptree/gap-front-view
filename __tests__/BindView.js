@@ -22,7 +22,7 @@ class BookView extends View {
                 ref=${view => this.userView = view}
                 view=${new UserView()}
                 bind="book.author"
-            />
+            ></gap-view>
             </div>
         </div>
         `;

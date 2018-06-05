@@ -21,7 +21,7 @@ export class View {
         }
         this.tpl = this.template();
         if (this.tpl) {
-            this.proxy.compile(this.tpl);
+            this.proxy.compile(this.tpl, this.vid);
         }
         this.proxy.changed();
 

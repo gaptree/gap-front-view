@@ -3,9 +3,13 @@ import {getFun} from '../lib/holder';
 import {GapProxy} from '../GapProxy';
 import {BinderBase} from './BinderBase';
 
+let arrBinderIndex = 0;
+
 export class ArrBinder extends BinderBase {
     constructor(elem) {
         super();
+
+        this.arrBinderId = 'arr-binder-' + arrBinderIndex++;
         this.elem = elem;
         this.bind = this.elem.getAttribute('arr') || this.elem.getAttribute('array');
         this.type = this.elem.getAttribute('type');
@@ -52,7 +56,7 @@ export class ArrBinder extends BinderBase {
         if (!itemProxy.tpl) {
             const tpl = this.tplBuilder(item);
             this.elem.appendChild(tpl.frag);
-            itemProxy.compile(tpl);
+            itemProxy.compile(tpl, this.arrBinderId + '-' + key);
             itemProxy.tpl = tpl;
             //itemProxy.changed();
         } else {

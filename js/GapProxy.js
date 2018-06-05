@@ -3,6 +3,7 @@ import {ElemPropBinder} from './binder/ElemPropBinder';
 import {ViewBinder} from './binder/ViewBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
 import {ArrBinder} from './binder/ArrBinder';
+import {TriggerBinder} from './binder/TriggerBinder';
 import {GapWrap} from './GapWrap';
 
 const parseDataProp = (inProp) => {
@@ -19,6 +20,8 @@ const parseDataProp = (inProp) => {
 export class GapProxy {
     constructor(data = {}) {
         this.data = data;
+        this.wraps = {};
+        this.scopeWraps = {};
     }
 
     updateAll(inData) {
@@ -71,67 +74,33 @@ export class GapProxy {
         this.commitChange();
     }
 
-    get wraps() {
-        this._wraps = this._wraps || {};
-        return this._wraps;
-    }
-
     changed() {
         Object.keys(this.wraps).forEach(key => this.wraps[key].changed());
     }
 
+    changedByScope(scope) {
+        if (scope) {
+            Object.keys(this.scopeWraps[scope]).forEach(key => {
+                this.scopeWraps[scope][key].changedByScope(scope);
+            });
+            return;
+        }
+    }
+
     getWrap(prop) {
+        this.scopeWraps[this.scope] = this.scopeWraps[this.scope] || {};
+        if (this.scopeWraps[this.scope][prop]) {
+            return this.scopeWraps[this.scope][prop];
+        }
+
         this.wraps[prop] = this.wraps[prop] || new GapWrap();
-        return this.wraps[prop];
+        this.wraps[prop].clearScope(this.scope);
+        this.scopeWraps[this.scope][prop] = this.wraps[prop];
+        return this.scopeWraps[this.scope][prop];
     }
 
     hasWrap(prop) {
         return this.wraps[prop] ? true : false;
-    }
-
-    get changeQueries() {
-        this._changeQueries = this._changeQueries || {};
-        return this._changeQueries;
-    }
-
-    startChange() {
-        this._changeLevel = this._changeLevel || 0;
-        this._changeLevel++;
-        if (this._changeLevel > 1) {
-            return;
-        }
-
-        this._changeQueries = {};
-    }
-
-    commitChange() {
-        if (this._changeLevel <= 0) {
-            this._changeLevel = 0;
-            throw new Error('commit change failed');
-        }
-
-        this._changeLevel--;
-        if (this._changeLevel > 0) {
-            return;
-        }
-
-        Object.keys(this.changeQueries).forEach(query => this.getWrap(query).changed());
-    }
-
-    changedRecursive(oriQuery) {
-        let query = oriQuery;
-        while(query) {
-            if (this.hasWrap(query)) {
-                this.changeQueries[query] = 1;
-                //this.getWrap(query).changed();
-            }
-
-            const pos = query.lastIndexOf('.');
-            if (pos < 0) {
-                break;
-            }
-            query = query.substr(0, pos);
-        }
     }
 
     defineQuery(inObj, oriQuery, inQuery = null) {
@@ -192,8 +161,11 @@ export class GapProxy {
         });
     }
 
-    compile(tpl) {
+    compile(tpl, scope = '') {
+        this.scope = scope;
+        this.isCompiling = true;
         tpl.elems.forEach(tplElem => this.compileNode(tplElem));
+        this.isCompiling = false;
     }
 
     compileNode(node) {
@@ -250,6 +222,11 @@ export class GapProxy {
                 continue;
             }
 
+            if (attrName === 'trigger') {
+                this.addBinder(attrVal, new TriggerBinder(elem, this));
+                continue;
+            }
+
             const sepIndex = attrName.indexOf('-');
 
             if (sepIndex <= 0) {
@@ -268,9 +245,9 @@ export class GapProxy {
             } else if (pre === 'bind') {
                 this.addBinder(attrVal, new ElemPropBinder(elem, type));
                 toRemoves.push(attrName);
-            } else if (pre === 'trigger') {
-                this.addTrigger(type.replace(/-/g, '.'), getFun(attrVal));
-                toRemoves.push(attrName);
+            //} else if (pre === 'trigger') {
+            //    this.addTrigger(type.replace(/-/g, '.'), getFun(attrVal));
+            //    toRemoves.push(attrName);
             }
         }
 
@@ -284,10 +261,68 @@ export class GapProxy {
 
         const wrap = this.getWrap(dataProp.name);
         binder.onFilter(dataProp.filter);
-        wrap.addBinder(binder);
+        wrap.addBinder(this.scope, binder);
     }
 
-    addTrigger(attrQuery, handle) {
-        this.getWrap(attrQuery).addTrigger(handle);
+    get changeQueries() {
+        this._changeQueries = this._changeQueries || {};
+        return this._changeQueries;
+    }
+
+    changedRecursive(oriQuery) {
+        let query = oriQuery;
+        while(query) {
+            if (this.hasWrap(query)) {
+                this.changeQueries[query] = 1;
+                //this.getWrap(query).changed();
+            }
+
+            const pos = query.lastIndexOf('.');
+            if (pos < 0) {
+                break;
+            }
+            query = query.substr(0, pos);
+        }
+    }
+
+    startChange() {
+        if (this.isCompiling) {
+            return;
+        }
+
+        this._changeLevel = this._changeLevel || 0;
+        this._changeLevel++;
+        if (this._changeLevel > 1) {
+            return;
+        }
+
+        this._changeQueries = {};
+    }
+
+    commitChange() {
+        if (this.isCompiling) {
+            return;
+        }
+
+        if (this._changeLevel <= 0) {
+            this._changeLevel = 0;
+            throw new Error('commit change failed');
+        }
+
+        this._changeLevel--;
+        if (this._changeLevel > 0) {
+            return;
+        }
+
+        Object.keys(this.changeQueries).forEach(query => this.getWrap(query).changed());
+
+        if (this.handleOnceCommitChange) {
+            this.handleOnceCommitChange();
+            this.handleOnceCommitChange = null;
+        }
+    }
+
+    onceCommitChange(handle) {
+        this.handleOnceCommitChange = handle;
     }
 }

@@ -1,10 +1,12 @@
-//import {deepAssign} from './lib/deepAssign';
-
 export class GapWrap {
     constructor() {
-        this.binders = [];
-        this.triggers = [];
+        //this.binders = [];
+        this.binders = {};
         this.val;
+    }
+
+    clearScope(scope) {
+        this.binders[scope] = [];
     }
 
     isEqual(inVal) {
@@ -24,15 +26,17 @@ export class GapWrap {
     }
 
     changed() {
-        this.binders.forEach(binder => binder.update(this.getVal()));
-        this.triggers.forEach(trigger => trigger(this.getVal()));
+        Object.keys(this.binders).forEach(scope => {
+            this.changedByScope(scope);
+        });
     }
 
-    addBinder(binder) {
-        this.binders.push(binder);
+    changedByScope(scope) {
+        const subBinders = this.binders[scope];
+        subBinders.forEach(binder => binder.update(this.getVal()));
     }
 
-    addTrigger(trigger) {
-        this.triggers.push(trigger);
+    addBinder(scope, binder) {
+        this.binders[scope].push(binder);
     }
 }
