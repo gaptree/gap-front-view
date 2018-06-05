@@ -11,7 +11,7 @@ export class View {
     static get tag() { return null; }
 
     constructor(data = {}) {
-        this.data = data || {};
+        this.data = Object.assign({}, data);
         this.event = new GapEvent();
         this.vid = 'gv' + viewIndex++;
         this.proxy = new GapProxy(this.data);

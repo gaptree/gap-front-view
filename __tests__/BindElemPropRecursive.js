@@ -11,6 +11,10 @@ class BookView extends View {
     setAuthorName(name) {
         this.data.book.author.name = name;
     }
+
+    setAuthor(author) {
+        this.data.book.author = author;
+    }
 }
 
 test('bind elem prop recursive', () => {
@@ -40,8 +44,10 @@ test('bind elem prop recursive', () => {
         }
     });
 
-    //console.log(bookView.proxy.wraps);
-    //console.log(bookView.data.book.author);
-
     expect(authorNameSpan.innerHTML).toBe('sam');
+
+    bookView.setAuthor({
+        name: 'jack'
+    });
+    expect(authorNameSpan.innerHTML).toBe('jack');
 });

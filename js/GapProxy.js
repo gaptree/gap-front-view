@@ -101,7 +101,7 @@ export class GapProxy {
             return;
         }
 
-        this._changeQueries = [];
+        this._changeQueries = {};
     }
 
     commitChange() {
@@ -143,7 +143,7 @@ export class GapProxy {
 
         if (nextQuery) {
             inObj[prop] = inObj[prop] || {};
-            //this.defineProp(inObj, oriQuery.substr(0, oriQuery.indexOf(nextQuery) - 1), prop);
+            this.defineProp(inObj, oriQuery.substr(0, oriQuery.indexOf(nextQuery) - 1), prop);
             this.defineQuery(inObj[prop], oriQuery, nextQuery);
             return;
         }
@@ -171,7 +171,21 @@ export class GapProxy {
                 }
 
                 this.startChange();
-                wrap.setVal(defVal);
+
+                // todo
+                if (defVal instanceof Array) {
+                    wrap.setVal(defVal);
+                } else if (defVal instanceof Object) {
+                    const wrapVal = wrap.getVal();
+                    if (wrapVal instanceof Object) {
+                        this.deepUpdate(wrap.getVal(), defVal);
+                    } else {
+                        wrap.setVal(defVal);
+                    }
+                } else {
+                    wrap.setVal(defVal);
+                }
+
                 this.changedRecursive(oriQuery);
                 this.commitChange();
             }

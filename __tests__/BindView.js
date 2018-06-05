@@ -54,7 +54,6 @@ test('bind view', () => {
     const bookTitleElem = document.querySelector('.book-title');
     const bookAuthorElem = document.querySelector('.book-author');
 
-
     expect(bookTitleElem.innerHTML.trim()).toBe('time history');
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">jack - yk</div>');
 
@@ -67,4 +66,10 @@ test('bind view', () => {
 
     bookView.setAuthorName('tom');
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">tom - sh</div>');
+
+    bookView.data.book.author = {
+        name: 'tom-changed',
+        address: 'sh-changed'
+    };
+    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">tom-changed - sh-changed</div>');
 });
