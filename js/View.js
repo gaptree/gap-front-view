@@ -16,13 +16,18 @@ export class View {
         this.vid = 'gv' + viewIndex++;
         this.proxy = new GapProxy(this.data);
 
-        if (this.constructor.tag) {
-            this.ctn = createElem(this.constructor.tag);
-        }
         this.tpl = this.template();
         if (this.tpl) {
             this.proxy.compile(this.tpl, this.vid);
         }
+
+        if (this.constructor.tag) {
+            this.ctn = createElem(this.constructor.tag);
+            if (this.tpl) {
+                this.ctn.appendChild(this.tpl.frag);
+            }
+        }
+
         this.proxy.changed();
 
         // deprecated
@@ -42,9 +47,6 @@ export class View {
         }
 
         if (this.ctn) {
-            if (this.tpl) {
-                this.ctn.appendChild(this.tpl.frag);
-            }
             this._elems = [this.ctn];
             return this._elems;
         }
