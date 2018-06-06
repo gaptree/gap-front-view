@@ -8,6 +8,10 @@ import {GapWrap} from './GapWrap';
 
 const parseDataProp = (inProp) => {
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+    if (!inProp) {
+        return null;
+    }
+
     const [name, filterStr] = inProp.split('|');
     const filter = filterStr
         && filterStr.indexOf('$$') === 0
@@ -262,6 +266,9 @@ export class GapProxy {
 
     addBinder(attrQuery, binder) {
         const dataProp = parseDataProp(attrQuery);
+        if (!dataProp) {
+            return;
+        }
         this.defineQuery(this.data, dataProp.name);
 
         const wrap = this.getWrap(dataProp.name);
