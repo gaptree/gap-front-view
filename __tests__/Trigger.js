@@ -60,7 +60,7 @@ test('trigger', () => {
     });
 
     expect(document.body.innerHTML.trim())
-        .toBe('<span>book title</span><div><span class="normal"> mike </span></div>');
+        .toBe('<span>book title</span> <div><span class="normal"> mike </span></div>');
 
     bookView.setAuthor({
         rank: 'new',
@@ -68,7 +68,7 @@ test('trigger', () => {
     });
 
     expect(document.body.innerHTML.trim())
-        .toBe('<span>book title</span><div>new author - jack</div>');
+        .toBe('<span>book title</span> <div>new author - jack</div>');
 
     bookView.setAuthor({
         rank: 'premium',
@@ -76,5 +76,5 @@ test('trigger', () => {
     });
 
     expect(document.body.innerHTML.trim())
-        .toBe('<span>book title</span><div><span class="premium"> super sum </span></div>');
+        .toBe('<span>book title</span> <div><span class="premium"> super sum </span></div>');
 });

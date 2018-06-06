@@ -23,20 +23,20 @@ export class GapTpl {
         });
     }
 
-    get elems() {
-        if (this._elems) {
-            return this._elems;
+    get nodes() {
+        if (this._nodes) {
+            return this._nodes;
         }
 
-        this._elems = [];
-        for (const elem of this.ctn.children) {
-            this._elems.push(elem);
+        this._nodes = [];
+        for (const node of this.ctn.childNodes) {
+            this._nodes.push(node);
         }
-        return this._elems;
+        return this._nodes;
     }
 
     get frag() {
-        return toFrag(this.elems);
+        return toFrag(this.nodes);
     }
 
     createViewHolder(view) {
@@ -45,7 +45,7 @@ export class GapTpl {
     }
 
     remove() {
-        this.elems.forEach(elem => elem.remove());
+        this.nodes.forEach(elem => elem.remove());
         this.views.forEach(view => view.remove());
     }
 
@@ -68,7 +68,7 @@ export class GapTpl {
             } else if (item instanceof View) {
                 str = this.createViewHolder(item);
             } else if (item instanceof GapTpl) {
-                str = item.elems.map(sub => createNodeHolder(sub)).join('');
+                str = item.nodes.map(sub => createNodeHolder(sub)).join('');
             } else if (item instanceof Object) {
                 str = createObjHolder(item);
             } else {

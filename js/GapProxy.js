@@ -165,7 +165,7 @@ export class GapProxy {
         this.scope = scope;
         this.clearScope(scope);
         this.isCompiling = true;
-        tpl.elems.forEach(tplElem => this.compileNode(tplElem));
+        tpl.nodes.forEach(tplElem => this.compileNode(tplElem));
         this.isCompiling = false;
     }
 

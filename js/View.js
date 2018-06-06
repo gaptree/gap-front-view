@@ -41,26 +41,27 @@ export class View {
         //deepUpdate(this.data, inData);
     }
 
-    get elems() {
-        if (this._elems) {
-            return this._elems;
+    get nodes() {
+        if (this._nodes) {
+            return this._nodes;
         }
 
         if (this.ctn) {
-            this._elems = [this.ctn];
-            return this._elems;
+            this._nodes = [this.ctn];
+            return this._nodes;
         }
 
         if (this.tpl) {
-            this._elems = this.tpl.elems;
-            return this._elems;
+            this._nodes = this.tpl.nodes;
+            return this._nodes;
         }
 
         return [];
     }
 
+
     get frag() {
-        return toFrag(this.elems);
+        return toFrag(this.nodes);
     }
 
     remove() {
