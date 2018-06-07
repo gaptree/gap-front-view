@@ -44,6 +44,10 @@ export class View {
             }
         }
 
+        if (!this.tpl) {
+            return [];
+        }
+
         const tplNodes = this.tpl.nodes;
         if (tplNodes[1]) {
             throw new Error(`tpl of view[${this.vid}] must be encapsulated in one html element: \n ${this.tpl.ctn.innerHTML}`);
