@@ -13,9 +13,11 @@ class PremiumView extends View {
 class BookView extends View {
     template() {
         return this.html`
-        <span>$${'book.title'}</span>
-        <div trigger="book.author">
-            ${author => this.getAuthorTemplate(author)}
+        <div class="book">
+            <span>$${'book.title'}</span>
+            <div trigger="book.author">
+                ${author => this.getAuthorTemplate(author)}
+            </div>
         </div>
         `;
     }
@@ -60,7 +62,7 @@ test('trigger', () => {
     });
 
     expect(document.body.innerHTML.trim())
-        .toBe('<span>book title</span> <div><span class="normal"> mike </span></div>');
+        .toBe('<div class="book"> <span>book title</span> <div><span class="normal"> mike </span></div> </div>');
 
     bookView.setAuthor({
         rank: 'new',
@@ -68,7 +70,7 @@ test('trigger', () => {
     });
 
     expect(document.body.innerHTML.trim())
-        .toBe('<span>book title</span> <div>new author - jack</div>');
+        .toBe('<div class="book"> <span>book title</span> <div>new author - jack</div> </div>');
 
     bookView.setAuthor({
         rank: 'premium',
@@ -76,5 +78,5 @@ test('trigger', () => {
     });
 
     expect(document.body.innerHTML.trim())
-        .toBe('<span>book title</span> <div><span class="premium"> super sum </span></div>');
+        .toBe('<div class="book"> <span>book title</span> <div><span class="premium"> super sum </span></div> </div>');
 });

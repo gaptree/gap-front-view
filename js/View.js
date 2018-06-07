@@ -21,13 +21,7 @@ export class View {
             this.proxy.compile(this.tpl, this.vid);
         }
 
-        if (this.constructor.tag) {
-            this.ctn = createElem(this.constructor.tag);
-            if (this.tpl) {
-                this.ctn.appendChild(this.tpl.frag);
-            }
-        }
-
+        this.ctn = this.getCtn();
         this.proxy.changed();
 
         // deprecated
@@ -41,6 +35,27 @@ export class View {
         //deepUpdate(this.data, inData);
     }
 
+    getCtn() {
+        if (this.constructor.tag) {
+            const ctn = createElem(this.constructor.tag);
+            if (this.tpl) {
+                ctn.appendChild(this.tpl.frag);
+                return ctn;
+            }
+        }
+
+        const tplNodes = this.tpl.nodes;
+        if (tplNodes[1]) {
+            throw new Error(`tpl of view[${this.vid}] must be encapsulated in one html element: \n ${this.tpl.ctn.innerHTML}`);
+        }
+        const ctn = tplNodes[0];
+        if (ctn instanceof HTMLElement) {
+            return ctn;
+        }
+
+        throw new Error('Error html format');
+    }
+
     get nodes() {
         if (this._nodes) {
             return this._nodes;
@@ -51,12 +66,14 @@ export class View {
             return this._nodes;
         }
 
+        /*
         if (this.tpl) {
             this._nodes = this.tpl.nodes;
             return this._nodes;
         }
 
         return [];
+        */
     }
 
 
