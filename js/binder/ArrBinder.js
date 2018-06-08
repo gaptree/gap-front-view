@@ -45,6 +45,14 @@ export class ArrBinder extends BinderBase {
         return this.itemKeyHandle(item);
     }
 
+    hasItem(item) {
+        const key = this.itemKey(item);
+        if (!this.itemProxies) {
+            return false;
+        }
+        return this.itemProxies.hasOwnProperty(key);
+    }
+
     buildItem(item) {
         if (!this.itemFilter(item)) {
             return;
@@ -94,8 +102,12 @@ export class ArrBinder extends BinderBase {
 
     inject(arr) {
         arr.push = (...items) => {
-            Array.prototype.push.call(arr, ...items);
-            items.forEach(item => this.buildItem(item));
+            items.forEach(item => {
+                if (!this.hasItem(item)) {
+                    Array.prototype.push.call(arr, item);
+                }
+                items.forEach(item => this.buildItem(item));
+            });
         };
 
         arr.add = arr.push;
