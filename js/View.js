@@ -40,12 +40,8 @@ export class View {
             const ctn = createElem(this.constructor.tag);
             if (this.tpl) {
                 ctn.appendChild(this.tpl.frag);
-                return ctn;
             }
-        }
-
-        if (!this.tpl) {
-            return [];
+            return ctn;
         }
 
         const tplNodes = this.tpl.nodes;
