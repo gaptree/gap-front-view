@@ -53,7 +53,7 @@ export class ArrBinder extends BinderBase {
         return this.itemProxies.hasOwnProperty(key);
     }
 
-    buildItem(item) {
+    buildItem(item, isAppend = true) {
         if (!this.itemFilter(item)) {
             return;
         }
@@ -61,14 +61,19 @@ export class ArrBinder extends BinderBase {
         const key = this.itemKey(item);
         const itemProxy = this.getItemProxy(key);
 
-        if (!itemProxy.tpl) {
-            const tpl = this.tplBuilder(item);
+        const tpl = itemProxy.tpl || this.tplBuilder(item);
+        if (!isAppend && this.elem.firstChild) {
+            this.elem.insertBefore(tpl.nodes[0], this.elem.firstChild);
+        } else {
             this.elem.appendChild(tpl.frag);
+        }
+
+        if (!itemProxy.tpl) {
+            //this.elem.appendChild(tpl.frag);
             itemProxy.compile(tpl, this.arrBinderId + '-' + key);
             itemProxy.tpl = tpl;
             //itemProxy.changed();
-        } else {
-            this.elem.appendChild(itemProxy.tpl.frag);
+            itemProxy.tpl = tpl;
         }
 
         itemProxy.updateAll({
@@ -124,12 +129,27 @@ export class ArrBinder extends BinderBase {
             });
         };
 
+        arr.unshift = (...items) => {
+            items.forEach(item => {
+                if (!this.hasItem(item)) {
+                    Array.prototype.unshift.call(arr, item);
+                }
+                items.forEach(item => this.buildItem(item, false));
+            });
+        };
+
         arr.add = arr.push;
         arr.updateElem = (item) => this.updateElem(item);
         arr.removeElem = (item) => this.removeElem(item);
 
         arr.pop = () => {
             const item = Array.prototype.pop.call(arr);
+            this.removeElem(item);
+            return item;
+        };
+
+        arr.shift = () => {
+            const item = Array.prototype.shift.call(arr);
             this.removeElem(item);
             return item;
         };
