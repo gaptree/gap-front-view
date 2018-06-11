@@ -64,6 +64,11 @@ export class ElemPropBinder extends BinderBase {
 
     getAttrHandler() {
         return (val) => {
+            if (val === undefined) {
+                this.elem.removeAttribute(this.prop);
+                return;
+            }
+
             this.elem.setAttribute(
                 this.prop,
                 this.parseVal(val)

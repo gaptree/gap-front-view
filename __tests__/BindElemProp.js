@@ -12,6 +12,7 @@ class UserView extends View {
             <input
                 name="name"
                 bind-value="name"
+                bind-required="required"
             >
             <input
                 name="address"
@@ -39,6 +40,7 @@ test('bind elem prop', () => {
     const nameSpan = document.querySelector('.name-span');
     const addressSpan = document.querySelector('.address-span');
 
+    expect(nameInput.required).toBe(false);
     expect(userIdInput.value).toBe('id1');
     expect(nameInput.value).toBe('Mike');
     expect(addressInput.value).toBe('Shanghai');
@@ -49,9 +51,11 @@ test('bind elem prop', () => {
     userView.update({
         userId: 'id2',
         name: 'Tom',
+        required: 'required',
         address: 'Beijin'
     });
 
+    expect(nameInput.required).toBe(true);
     expect(userIdInput.value).toBe('id2');
     expect(nameInput.value).toBe('Tom');
     expect(addressInput.value).toBe('Beijin');
