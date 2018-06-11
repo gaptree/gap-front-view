@@ -76,6 +76,20 @@ export class ArrBinder extends BinderBase {
         });
     }
 
+    updateElem(item) {
+        const key = this.itemKey(item);
+        if (!this.itemProxies) {
+            return false;
+        }
+        if (!this.itemProxies.hasOwnProperty(key)) {
+            return false;
+        }
+        const itemProxy = this.getItemProxy(key);
+        itemProxy.updateAll({
+            [this.itemAs]: item
+        });
+    }
+
     removeElem(item) {
         const key = this.itemKey(item);
         const itemProxy = this.getItemProxy(key);
@@ -111,9 +125,8 @@ export class ArrBinder extends BinderBase {
         };
 
         arr.add = arr.push;
-        arr.removeElem = (item) => {
-            this.removeElem(item);
-        };
+        arr.updateElem = (item) => this.updateElem(item);
+        arr.removeElem = (item) => this.removeElem(item);
 
         arr.pop = () => {
             const item = Array.prototype.pop.call(arr);
