@@ -18,15 +18,16 @@ class BookView extends View {
 }
 
 test('bind elem prop recursive', () => {
-    const bookView = new BookView({
+    const bookView = new BookView();
+
+    bookView.appendTo(document.body);
+    bookView.update({
         book: {
             author: {
                 name: 'mike'
             }
         }
     });
-
-    bookView.appendTo(document.body);
 
     const authorNameSpan = document.querySelector('.author-name');
 

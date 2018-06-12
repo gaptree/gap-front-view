@@ -27,7 +27,8 @@ class UserView extends View {
 }
 
 test('bind elem prop', () => {
-    const userView = new UserView({
+    const userView = new UserView();
+    userView.update({
         userId: 'id1',
         name: 'Mike',
         address: 'Shanghai'

@@ -10,8 +10,9 @@ let viewIndex = 1;
 export class View {
     static get tag() { return null; }
 
-    constructor(data = {}) {
-        this.data = Object.assign({}, data);
+    constructor(props = {}) {
+        this.props = props || {};
+        this.data = {};
         this.event = new GapEvent();
         this.vid = 'gv' + viewIndex++;
         this.proxy = new GapProxy(this.data);
@@ -22,7 +23,7 @@ export class View {
         }
 
         this.ctn = this.getCtn();
-        this.proxy.changed();
+        //this.proxy.changed();
 
         // deprecated
         this.init();
