@@ -32,7 +32,7 @@ export class View {
     }
 
     update(inData) {
-        this.proxy.updateAll(inData);
+        this.proxy.updateAll(inData, this.vid);
         //deepUpdate(this.data, inData);
     }
 

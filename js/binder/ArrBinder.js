@@ -26,6 +26,10 @@ export class ArrBinder extends BinderBase {
         this.refresh();
     }
 
+    getScope(key) {
+        return this.arrBinderId + '-' + key;
+    }
+
     update(inVal) {
         this.items = this.parseVal(inVal);
         if (this.items === undefined) {
@@ -192,7 +196,7 @@ export class ArrBinder extends BinderBase {
 
         handle(tpl);
 
-        proxy.compile(tpl, this.arrBinderId + '-' + key);
+        proxy.compile(tpl, this.getScope(key));
         proxy.changed();
         this.setProxy(key, proxy);
         this.setTpl(key, tpl);
@@ -200,7 +204,7 @@ export class ArrBinder extends BinderBase {
 
     updateElem(key, item) {
         const proxy = this.getProxy(key);
-        proxy.updateAll({[this.itemAs]: item});
+        proxy.updateAll({[this.itemAs]: item}, this.getScope(key));
     }
 
     deleteElem(key) {

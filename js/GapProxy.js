@@ -28,11 +28,11 @@ export class GapProxy {
         this.scopeWraps = {};
     }
 
-    updateAll(inData) {
-        this.deepUpdate(this.data, inData);
+    updateAll(inData, scope) {
+        this.deepUpdate(this.data, inData, scope);
     }
 
-    deepUpdate(res, inSrc) {
+    deepUpdate(res, inSrc, scope) {
         if (!(res instanceof Object)) {
             return;
         }
@@ -75,7 +75,7 @@ export class GapProxy {
             res[key] = src[key];
         });
 
-        this.commitChange();
+        this.commitChange(scope);
     }
 
     getWrap(prop) {
@@ -300,7 +300,7 @@ export class GapProxy {
         this._changeQueries = {};
     }
 
-    commitChange() {
+    commitChange(scope) {
         if (this.isCompiling) {
             return;
         }
@@ -315,7 +315,11 @@ export class GapProxy {
             return;
         }
 
-        this.changed();
+        if (scope) {
+            this.changedByScope(scope);
+        } else {
+            this.changed();
+        }
     }
 
     changedByScope(scope) {
@@ -323,6 +327,7 @@ export class GapProxy {
             Object.keys(this.scopeWraps[scope]).forEach(key => {
                 this.scopeWraps[scope][key].changedByScope(scope);
             });
+            this.handleChanged();
         }
     }
 
@@ -332,9 +337,10 @@ export class GapProxy {
     }
 
     handleChanged() {
-        if (this.handleOnceCommitChange) {
-            this.handleOnceCommitChange();
-            this.handleOnceCommitChange = null;
+        const handle = this.handleOnceCommitChange;
+        this.handleOnceCommitChange = null;
+        if (handle) {
+            handle();
         }
     }
 
