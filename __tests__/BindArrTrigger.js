@@ -10,15 +10,16 @@ class UserListView extends View {
             item-filter=${user => user.age > 18}
         >
             ${() => this.html`
-                <span trigger='user'>
-                ${(user) => this.triggerAge(user)}
+                <span trigger='user.name'>
+                ${(name, data) => this.triggerAge(name, data)}
                 </span>
             `}
         </div>
         `;
     }
 
-    triggerAge(user) {
+    triggerAge(name, data) {
+        const user = data.user;
         return `${user.userId} - ${user.name} - ${user.age} - ${user.address}`;
     }
 
@@ -60,9 +61,6 @@ test('bind arr', () => {
         address: 'beijin changed'
     });
 
-    /*
-    console.log(userListView.data.users);
     expect(document.body.innerHTML.trim())
-        .toBe('<div><span>id3 - mike changed - 20 - sh</span><span>id4 - tom changed- 20 - beijin changed</span></div>');
-        */
+        .toBe('<div><span>id3 - mike changed - 20 - sh</span><span>id4 - tom changed - 22 - beijin changed</span></div>');
 });

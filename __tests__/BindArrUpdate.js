@@ -6,7 +6,7 @@ class UserListView extends View {
         <div
             arr="users"
             item-as="user"
-            item-key=${user => user.name}
+            item-key=${user => user.userId}
             item-filter=${user => user.age > 18}
         >
             ${() => this.html`
@@ -22,12 +22,12 @@ class UserListView extends View {
         `;
     }
 
-    removeUser(user) {
-        this.data.users.removeElem(user);
+    updateUser(user) {
+        this.data.users.update(user);
     }
 }
 
-test('bind arr remove Elem', () => {
+test('bind arr update elem', () => {
     const userListView = new UserListView();
     userListView.appendTo(document.body);
 
@@ -42,11 +42,15 @@ test('bind arr remove Elem', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
 
-    userListView.removeUser({
-        userId: 'id3', name: 'mike', age: 20, address: 'zj'
+    userListView.updateUser({
+        userId: 'id3',
+        name: 'tom',
+        age: 28,
+        address: 'hz'
     });
 
-    expect(document.body.innerHTML.trim())
-        .toBe('<div><span id="id2"> rose - 21 - sh </span></div>');
+    expect(userListView.data.users[2].address).toBe('hz');
 
+    expect(document.body.innerHTML.trim())
+        .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> tom - 28 - hz </span></div>');
 });

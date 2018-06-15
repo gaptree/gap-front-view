@@ -59,7 +59,7 @@ test('bind arr view', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span><span id="id4"> tom - 28 - hz </span></div>');
 
-    userListView.data.users.removeElem({
+    userListView.data.users.delete({
         name: 'rose'
     });
     expect(document.body.innerHTML.trim())

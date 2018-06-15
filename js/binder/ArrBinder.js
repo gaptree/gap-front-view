@@ -1,5 +1,4 @@
 import {getFun} from '../lib/holder';
-//import {compile} from '../lib/compile';
 import {GapProxy} from '../GapProxy';
 import {BinderBase} from './BinderBase';
 
@@ -8,15 +7,6 @@ let arrBinderIndex = 0;
 export class ArrBinder extends BinderBase {
     constructor(elem) {
         super();
-
-        /*
-        this.tpls = {};
-        this.keyMap = {};
-        this.proxies = {};
-        this.items = [];
-        this.currentIndex = 0;
-        this.offset = 0;
-        */
 
         this.arrBinderId = 'arr-binder-' + arrBinderIndex++;
         this.elem = elem;
@@ -30,237 +20,257 @@ export class ArrBinder extends BinderBase {
 
         ['arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as']
             .forEach(attrName => this.elem.removeAttribute(attrName));
-        this.elem.innerHTML = '';
+    }
 
-        /*
-        this.items = this.buildItems();
-        this.items.clear();
-        */
+    update(inVal) {
+        this.items = this.parseVal(inVal);
+        if (this.items === undefined) {
+            return;
+        }
+
+
+        this.refresh();
+        this.items.forEach(item => this.pushItem(item));
+
+        this.injectItems();
+    }
+
+    refresh() {
+        this.elem.innerHTML = '';
+        this.tpls = {};
+        this.proxies = {};
+        this.keyMap = {};
+
+        this.currentIndex = 0;
+        this.offset = 0;
+    }
+
+    injectItems() {
+        const defineProp = (obj, prop, handle) => {
+            Object.defineProperty(obj, prop, {
+                enumerable: false,
+                configurable: false,
+                value: handle
+            });
+        };
+
+        defineProp(this.items, 'push', (...argItems) => {
+            argItems.forEach(argItem => {
+                Array.prototype.push.call(this.items, argItem);
+                this.pushItem(argItem);
+            });
+        });
+
+        defineProp(this.items, 'unshift', (...argItems) => {
+            argItems.forEach(argItem => {
+                Array.prototype.unshift.call(this.items, argItem);
+                this.unshiftItem(argItem);
+            });
+        });
+
+        defineProp(this.items, 'pop', () => {
+            const item = Array.prototype.pop.call(this.items);
+            this.popItem(item);
+        });
+
+        defineProp(this.items, 'shift', () => {
+            const item = Array.prototype.shift.call(this.items);
+            this.shiftItem(item);
+        });
+
+        defineProp(this.items, 'delete', item => {
+            const key = this.deleteItem(item);
+            const index = this.getIndex(key);
+            this.items[index] = undefined;
+            this.deleteKey(key);
+        });
+
+        defineProp(this.items, 'update', item => {
+            this.updateItem(item);
+        });
+
+        // ----
+
+        defineProp(this.items, 'filter', (handle) => {
+            return Array.prototype.filter.call(this.items, (item, index, array) => {
+                if (!item) {
+                    return false;
+                }
+
+                if (handle(item, index, array)) {
+                    return true;
+                }
+
+                const key = this.deleteItem(item);
+                this.deleteKey(key);
+                return false;
+            });
+        });
+
+        defineProp(this.items, 'clear', () => {
+            this.items.splice(0, this.items.length);
+            this.refresh();
+        });
+    }
+
+    // item
+    createItem(item, keyHandle, elemHandle) {
+        const key = this.itemKey(item);
+        const existed = this.hasKey(key);
+        keyHandle(key);
+
+        if (this.itemFilter(item)) {
+            if (existed) {
+                this.updateElem(key, item);
+                return;
+            }
+            elemHandle(key, item);
+        }
+    }
+
+    pushItem(item) {
+        this.createItem(
+            item,
+            key => this.pushKey(key),
+            (key, item) => this.pushElem(key, item)
+        );
+    }
+
+    unshiftItem(item) {
+        this.createItem(
+            item,
+            key => this.unshiftKey(key),
+            (key, item) => this.unshiftElem(key, item)
+        );
+    }
+
+    updateItem(item) {
+        const key = this.itemKey(item);
+        const index = this.getIndex(key);
+        this.updateElem(key, item);
+        Object.assign(this.items[index], item);
+    }
+
+    deleteItem(item) {
+        const key = this.itemKey(item);
+        if (!this.hasKey(key)) {
+            return false;
+        }
+
+        this.deleteElem(key);
+
+        delete(this.proxies[key]);
+        delete(this.tpls[key]);
+
+        return key;
+    }
+
+    popItem(item) {
+        const key = this.deleteItem(item);
+        this.popKey(key);
+    }
+
+    shiftItem(item) {
+        const key = this.deleteItem(item);
+        this.shiftKey(key);
+    }
+
+    // elem
+    createElem(key, item, handle) {
+        const proxy = new GapProxy({[this.itemAs]: item});
+        //const tplItem = proxy.data[this.itemAs];
+        const tpl = this.tplBuilder();
+
+        handle(tpl);
+
+        proxy.compile(tpl, this.arrBinderId + '-' + key);
+        proxy.changed();
+        this.setProxy(key, proxy);
+        this.setTpl(key, tpl);
+    }
+
+    updateElem(key, item) {
+        const proxy = this.getProxy(key);
+        proxy.updateAll({[this.itemAs]: item});
+    }
+
+    deleteElem(key) {
+        const tpl = this.getTpl(key);
+        if (tpl) {
+            tpl.remove();
+        }
+    }
+
+    pushElem(key, item) {
+        this.createElem(key, item, tpl => this.elem.appendChild(tpl.nodes[0]));
+    }
+
+    unshiftElem(key, item) {
+        this.createElem(key, item, tpl => {
+            if (this.elem.firstChild) {
+                this.elem.insertBefore(tpl.nodes[0], this.elem.firstChild);
+            } else {
+                this.elem.appendChild(tpl.nodes[0]);
+            }
+        });
+    }
+    
+    // get & set by key
+    setProxy(key, proxy) {
+        this.proxies[key] = proxy;
     }
 
     getProxy(key) {
-        if (this.proxies[key]) {
-            return this.proxies[key];
-        }
-        this.proxies[key] = new GapProxy();
         return this.proxies[key];
     }
 
-    getIndex(key) {
-        const temIndex = this.keyMap[key];
-        return (temIndex - this.offset);
-    }
-
-    getItem(key) {
-        const index = this.getIndex(key);
-        return this.items[index];
-    }
-
-    getTpl(key, item) {
-        if (this.tpls[key]) {
-            return this.tpls[key];
-        }
-
-        const tpl = this.tplBuilder(item);
-        //const proxy = this.getProxy(key);
-        //proxy.compile(tpl, this.arrBinderId + '-' + key);
+    setTpl(key, tpl) {
         this.tpls[key] = tpl;
+    }
+
+    getTpl(key) {
         return this.tpls[key];
+    }
+
+    getIndex(key) {
+        return (this.keyMap[key] - this.offset);
+    }
+
+    // key ---------
+    pushKey(key) {
+        this.keyMap[key] = this.currentIndex;
+        this.currentIndex++;
+    }
+
+    unshiftKey(key) {
+        this.offset--;
+        this.keyMap[key] = this.offset;
+    }
+
+    popKey(key) {
+        this.deleteKey(key);
+        this.currentIndex--;
+    }
+
+    shiftKey(key) {
+        this.deleteKey(key);
+        this.offset++;
+    }
+
+    deleteKey(key) {
+        delete(this.keyMap[key]);
     }
 
     hasKey(key) {
         return this.keyMap.hasOwnProperty(key);
     }
 
-    getLength() {
-        return this.currentIndex - this.offset;
-    }
-
-    // -----
-    _updateItem(key, item) {
-        const proxy = this.getProxy(key);
-        if (this.hasKey(key)) {
-            Object.assign(this.getItem(key), item);
-            proxy.updateAll({[this.itemAs]: item});
-            return true;
+    // ----
+    itemKey(item) {
+        if (!this.itemKeyHandle) {
+            throw new Error('cannot find item key  handle');
         }
-
-        return false;
-    }
-
-    pushItem(item) {
-        if (!this.itemFilter(item)) {
-            return false;
-        }
-
-        const key = this.itemKey(item);
-        if (this._updateItem(key, item)) {
-            return false;
-        }
-
-        const tpl = this.getTpl(key, item);
-        const proxy = this.getProxy(key);
-        this.elem.appendChild(tpl.nodes[0]);
-
-        proxy.compile(tpl, this.arrBinderId + '-' + key);
-        proxy.updateAll({[this.itemAs]: item});
-
-        this.keyMap[key] = this.currentIndex;
-        this.currentIndex++;
-        return true;
-    }
-
-    unshiftItem(item) {
-        if (!this.itemFilter(item)) {
-            return false;
-        }
-
-        const key = this.itemKey(item);
-        if (this._updateItem(key, item)) {
-            return false;
-        }
-
-        const tpl = this.getTpl(key, item);
-        const proxy = this.getProxy(key);
-        if (this.elem.firstChild) {
-            this.elem.insertBefore(tpl.nodes[0], this.elem.firstChild);
-        } else {
-            this.elem.appendChild(tpl.nodes[0]);
-        }
-        // proxy compile must before updateAll
-        proxy.compile(tpl, this.arrBinderId + '-' + key);
-        proxy.updateAll({[this.itemAs]: item});
-        this.offset--;
-        this.keyMap[key] = this.offset;
-
-        return true;
-    }
-
-    shiftItem(item) {
-        this.deleteItem(item, true);
-        this.offset++;
-    }
-
-    popItem(item) {
-        this.deleteItem(item, true);
-        this.currentIndex--;
-    }
-
-    deleteItem(item, isIgnore = false) {
-        const key = this.itemKey(item);
-        if (!this.hasKey(key)) {
-            return false;
-        }
-
-        const tpl = this.getTpl(key, item);
-        tpl.remove();
-
-        delete(this.proxies[key]);
-        delete(this.keyMap[key]);
-        delete(this.tpls[key]);
-        
-        const index = this.getIndex(key);
-        if (isIgnore) {
-            this.items[index] = undefined;
-        }
-        return true;
-    }
-
-    // ----------
-
-    defineProp(obj, prop, handle) {
-        Object.defineProperty(obj, prop, {
-            enumerable: false,
-            configurable: false,
-            value: handle
-        });
-    }
-
-    buildItems(itemArr) {
-        //const itemArr = [];
-
-        this.defineProp(itemArr, 'push', (...items) => {
-            items.forEach(item => {
-                if (this.pushItem(item)) {
-                    Array.prototype.push.call(itemArr, item);
-                }
-            });
-            return this.getLength();
-        });
-
-        this.defineProp(itemArr, 'unshift', (...items) => {
-            items.forEach(item => {
-                if (this.unshiftItem(item)) {
-                    Array.prototype.unshift.call(itemArr, item);
-                }
-            });
-            return this.getLength();
-        });
-
-        this.defineProp(itemArr, 'delete', (item) => {
-            this.deleteItem(item);
-        });
-
-        this.defineProp(itemArr, 'pop', () => {
-            const item = Array.prototype.pop.call(itemArr);
-            this.popItem(item);
-            return item;
-        });
-
-        this.defineProp(itemArr, 'shift', () => {
-            const item = Array.prototype.shift.call(itemArr);
-            this.shiftItem(item);
-            return item;
-        });
-
-        this.defineProp(itemArr, 'filter', (handle) => {
-            return Array.prototype.filter.call(itemArr, (item, index, array) => {
-                if (handle(item, index, array)) {
-                    return true;
-                }
-
-                this.deleteItem(item);
-                return false;
-            });
-        });
-
-        this.defineProp(itemArr, 'clear', () => {
-
-            itemArr.splice(0, itemArr.length);
-            this.refresh();
-        });
-
-        // deprecated
-
-        this.defineProp(itemArr, 'add', (...items) => {
-            console.warn('please use push'); // eslint-disable-line
-            itemArr.push(...items);
-        });
-
-        this.defineProp(itemArr, 'updateElem', (item) => {
-            console.warn('please use push or unshift'); // eslint-disable-line
-            itemArr.push(item);
-        });
-
-        this.defineProp(itemArr, 'removeElem', (item) => {
-            console.warn('please use delete'); // eslint-disable-line
-            itemArr.delete(item);
-        });
-
-        return itemArr;
-    }
-
-    // ---------
-
-    tplBuilder(item) {
-        if (!this.tplBuilderHandle) {
-            throw new Error('cannot find tpl builder handle');
-        }
-        const tpl = this.tplBuilderHandle(item);
-        if (tpl.nodes[1]) {
-            throw new Error('array item tpl must be encapsulated: ' + tpl.ctn.innerHTML);
-        }
-        return tpl;
+        return this.itemKeyHandle(item);
     }
 
     itemFilter(item) {
@@ -270,38 +280,14 @@ export class ArrBinder extends BinderBase {
         return true;
     }
 
-    itemKey(item) {
-        if (!this.itemKeyHandle) {
-            throw new Error('cannot find item key  handle');
+    tplBuilder() {
+        if (!this.tplBuilderHandle) {
+            throw new Error('cannot find tpl builder handle');
         }
-        return this.itemKeyHandle(item);
-    }
-
-    hasItem(item) {
-        const key = this.itemKey(item);
-        return this.keyMap.hasOwnProperty(key);
-    }
-
-    refresh() {
-        this.elem.innerHTML = '';
-        this.tpls = {};
-        this.proxies = {};
-        this.keyMap = {};
-        //this.itemArr.clear();
-
-        this.currentIndex = 0;
-        this.offset = 0;
-    }
-    update(inVal) {
-        const arr = this.parseVal(inVal);
-        if (arr === undefined) {
-            return;
+        const tpl = this.tplBuilderHandle();
+        if (tpl.nodes[1]) {
+            throw new Error('array item tpl must be encapsulated: ' + tpl.ctn.innerHTML);
         }
-
-        this.items = this.buildItems(arr);
-        this.refresh();
-
-        const outItems = this.items.splice(0, this.items.length);
-        this.items.push(...outItems);
+        return tpl;
     }
 }

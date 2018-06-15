@@ -22,11 +22,11 @@ export class TriggerBinder extends BinderBase {
         this.elem.innerHTML = '';
     }
 
-    tplBuilder(item) {
+    tplBuilder(item, data) {
         if (!this.tplBuilderHandle) {
             throw new Error('cannot find tpl builder handle');
         }
-        return this.tplBuilderHandle(item);
+        return this.tplBuilderHandle(item, data);
     }
 
     update(inVal) {
@@ -34,7 +34,7 @@ export class TriggerBinder extends BinderBase {
         if (val === undefined) {
             return;
         }
-        const tpl = this.tplBuilder(val);
+        const tpl = this.tplBuilder(val, this.proxy.data);
         this.elem.innerHTML = '';
 
         if (tpl instanceof GapTpl) {
