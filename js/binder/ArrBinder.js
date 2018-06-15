@@ -18,8 +18,10 @@ export class ArrBinder extends BinderBase {
         this.itemFilterHandle = getFun(this.elem.getAttribute('item-filter'));
         this.itemKeyHandle = getFun(this.elem.getAttribute('item-key'));
 
+        /*
         ['arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as']
             .forEach(attrName => this.elem.removeAttribute(attrName));
+            */
 
         this.refresh();
     }

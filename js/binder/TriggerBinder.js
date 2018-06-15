@@ -17,7 +17,7 @@ export class TriggerBinder extends BinderBase {
 
         this.tplBuilderHandle = getFun(this.elem.innerHTML.trim());
 
-        ['trigger'].forEach(attrName => this.elem.removeAttribute(attrName));
+        //['trigger'].forEach(attrName => this.elem.removeAttribute(attrName));
 
         this.elem.innerHTML = '';
     }

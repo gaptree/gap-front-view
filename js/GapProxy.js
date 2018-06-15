@@ -209,6 +209,7 @@ export class GapProxy {
 
             if (attrName === 'arr' || attrName === 'array') {
                 this.addBinder(attrVal, new ArrBinder(elem));
+                toRemoves.push('arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as');
                 continue;
             }
 
@@ -220,6 +221,7 @@ export class GapProxy {
 
             if (attrName === 'trigger') {
                 this.addBinder(attrVal, new TriggerBinder(elem, this));
+                toRemoves.push(attrName);
                 continue;
             }
 

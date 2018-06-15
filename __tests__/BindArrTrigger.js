@@ -10,7 +10,7 @@ class UserListView extends View {
             item-filter=${user => user.age > 18}
         >
             ${() => this.html`
-                <span trigger='user.name'>
+                <span trigger='user.name' on-click=${() => {}}>
                 ${(name, data) => this.triggerAge(name, data)}
                 </span>
             `}
@@ -28,7 +28,7 @@ class UserListView extends View {
     }
 }
 
-test('bind arr', () => {
+test('bind arr trigger', () => {
     const userListView = new UserListView();
     userListView.appendTo(document.body);
 
