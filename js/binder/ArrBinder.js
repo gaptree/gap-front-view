@@ -20,6 +20,8 @@ export class ArrBinder extends BinderBase {
 
         ['arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as']
             .forEach(attrName => this.elem.removeAttribute(attrName));
+
+        this.refresh();
     }
 
     update(inVal) {
