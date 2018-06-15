@@ -32,9 +32,9 @@ export class ArrBinder extends BinderBase {
 
 
         this.refresh();
-        this.items.forEach(item => this.pushItem(item));
-
         this.injectItems();
+
+        this.items.forEach(item => this.pushItem(item));
     }
 
     refresh() {
@@ -89,6 +89,11 @@ export class ArrBinder extends BinderBase {
 
         defineProp(this.items, 'update', item => {
             this.updateItem(item);
+        });
+
+        defineProp(this.items, 'get', (key) => {
+            const index = this.getIndex(key);
+            return this.items[index];
         });
 
         // ----
@@ -181,7 +186,7 @@ export class ArrBinder extends BinderBase {
     createElem(key, item, handle) {
         const proxy = new GapProxy({[this.itemAs]: item});
         //const tplItem = proxy.data[this.itemAs];
-        const tpl = this.tplBuilder();
+        const tpl = this.tplBuilder(key);
 
         handle(tpl);
 
@@ -282,11 +287,11 @@ export class ArrBinder extends BinderBase {
         return true;
     }
 
-    tplBuilder() {
+    tplBuilder(key) {
         if (!this.tplBuilderHandle) {
             throw new Error('cannot find tpl builder handle');
         }
-        const tpl = this.tplBuilderHandle();
+        const tpl = this.tplBuilderHandle(key);
         if (tpl.nodes[1]) {
             throw new Error('array item tpl must be encapsulated: ' + tpl.ctn.innerHTML);
         }
