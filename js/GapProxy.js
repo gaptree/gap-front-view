@@ -3,7 +3,7 @@ import {ElemPropBinder} from './binder/ElemPropBinder';
 import {ViewBinder} from './binder/ViewBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
 import {ArrBinder} from './binder/ArrBinder';
-import {TriggerBinder} from './binder/TriggerBinder';
+import {WatchBinder} from './binder/WatchBinder';
 import {GapWrap} from './GapWrap';
 
 const parseDataProp = (inProp) => {
@@ -219,8 +219,8 @@ export class GapProxy {
                 continue;
             }
 
-            if (attrName === 'trigger') {
-                this.addBinder(attrVal, new TriggerBinder(elem, this));
+            if (attrName === 'trigger' || attrName === 'watch') {
+                this.addBinder(attrVal, new WatchBinder(elem, this));
                 toRemoves.push(attrName);
                 continue;
             }

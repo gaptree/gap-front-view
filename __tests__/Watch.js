@@ -15,7 +15,7 @@ class BookView extends View {
         return this.html`
         <div class="book">
             <span>$${'book.title'}</span>
-            <div trigger="book.author">
+            <div watch="book.author">
                 ${author => this.getAuthorTemplate(author)}
             </div>
         </div>
@@ -48,7 +48,7 @@ class BookView extends View {
     }
 }
 
-test('trigger', () => {
+test('watch', () => {
     const bookView = new BookView();
     bookView.appendTo(document.body);
 

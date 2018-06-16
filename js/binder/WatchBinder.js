@@ -3,21 +3,21 @@ import {BinderBase} from './BinderBase';
 import {GapTpl} from '../GapTpl';
 //import {GapProxy} from '../GapProxy';
 
-let triggerIndex = 0;
+let watchIndex = 0;
 
-export class TriggerBinder extends BinderBase {
+export class WatchBinder extends BinderBase {
     constructor(elem, proxy) {
         super();
 
         this.elem = elem;
-        this.triggerId = 'trigger-' + triggerIndex++;
+        this.watchId = 'watch-' + watchIndex++;
         //this.proxy = new GapProxy();
         this.proxy = proxy;
-        this.bind = this.elem.getAttribute('trigger');
+        this.bind = this.elem.getAttribute('watch') || this.elem.getAttribute('trigger');
 
         this.tplBuilderHandle = getFun(this.elem.innerHTML.trim());
 
-        //['trigger'].forEach(attrName => this.elem.removeAttribute(attrName));
+        //['watch'].forEach(attrName => this.elem.removeAttribute(attrName));
 
         this.elem.innerHTML = '';
     }
@@ -40,8 +40,8 @@ export class TriggerBinder extends BinderBase {
         if (tpl instanceof GapTpl) {
             this.elem.appendChild(tpl.frag);
             this.proxy.onceCommitChange(() => {
-                this.proxy.compile(tpl, this.triggerId);
-                this.proxy.changedByScope(this.triggerId);
+                this.proxy.compile(tpl, this.watchId);
+                this.proxy.changedByScope(this.watchId);
             });
             return;
         }
