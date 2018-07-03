@@ -25,6 +25,10 @@ class UserListView extends View {
     removeUser(user) {
         this.data.users.delete(user);
     }
+
+    removeUserByUserId(userId) {
+        this.data.users.deleteByKey(userId);
+    }
 }
 
 test('bind arr delete', () => {
@@ -51,9 +55,7 @@ test('bind arr delete', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span></div>');
 
-    userListView.removeUser({
-        userId: 'id2', name: 'rose', age: 21, address: 'sh'
-    });
+    userListView.removeUserByUserId('id2');
 
     expect(userListView.data.users[1]).toBe(undefined);
 

@@ -89,6 +89,19 @@ export class ArrBinder extends BinderBase {
         defineProp(this.items, 'delete', item => {
             const key = this.deleteItem(item);
             const index = this.getIndex(key);
+            if (isNaN(index)) {
+                return;
+            }
+            this.items[index] = undefined;
+            this.deleteKey(key);
+        });
+
+        defineProp(this.items, 'deleteByKey', key => {
+            this.deleteItemByKey(key);
+            const index = this.getIndex(key);
+            if (isNaN(index)) {
+                return;
+            }
             this.items[index] = undefined;
             this.deleteKey(key);
         });
@@ -166,6 +179,11 @@ export class ArrBinder extends BinderBase {
 
     deleteItem(item) {
         const key = this.itemKey(item);
+        this.deleteItemByKey(key);
+        return key;
+    }
+
+    deleteItemByKey(key) {
         if (!this.hasKey(key)) {
             return false;
         }
@@ -174,8 +192,6 @@ export class ArrBinder extends BinderBase {
 
         delete(this.proxies[key]);
         delete(this.tpls[key]);
-
-        return key;
     }
 
     popItem(item) {
