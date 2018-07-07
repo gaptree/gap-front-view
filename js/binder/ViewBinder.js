@@ -43,4 +43,11 @@ export class ViewBinder extends BinderBase {
             this.view.update(val);
         }
     }
+
+    updateProp(prop, inVal) {
+        const val = this.parseVal(inVal);
+        if (val) {
+            this.view.data[prop] = val;
+        }
+    }
 }

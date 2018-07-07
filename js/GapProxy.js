@@ -1,6 +1,7 @@
 import {getFun} from './lib/holder';
 import {ElemPropBinder} from './binder/ElemPropBinder';
 import {ViewBinder} from './binder/ViewBinder';
+import {ViewPropBinder} from './binder/ViewPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
 import {ArrBinder} from './binder/ArrBinder';
 import {WatchBinder} from './binder/WatchBinder';
@@ -193,7 +194,23 @@ export class GapProxy {
     }
 
     compileGapView(node) {
-        this.addBinder(node.getAttribute('bind'), new ViewBinder(node));
+        const viewBinder = new ViewBinder(node);
+        const bindAttr = node.getAttribute('bind');
+        if (bindAttr) {
+            this.addBinder(bindAttr, viewBinder);
+        }
+
+        for (const attr of node.attributes) {
+            const attrName = attr.name;
+            const attrVal = attr.value;
+            if (attrName.indexOf('bind-') === 0) {
+                const prop = attrName.substr(5);
+                this.addBinder(
+                    attrVal,
+                    new ViewPropBinder(viewBinder, prop)
+                );
+            }
+        }
     }
 
     compileGapText(node) {
