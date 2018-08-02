@@ -1,6 +1,8 @@
 import {GapEvent} from './GapEvent';
+//import {GapObj} from './GapObj';
 import {GapProxy} from './GapProxy';
 import {GapTpl} from './GapTpl';
+import {filterHolder} from './holder/filterHolder';
 
 import {createElem} from './lib/createElem';
 
@@ -11,13 +13,24 @@ export class View {
 
     constructor(props = {}) {
         this.vid = 'gv' + viewIndex++;
+        this.isCompiled = false;
 
         this.props = props || {};
-        this.data = {};
         this.event = new GapEvent();
-        this.proxy = new GapProxy(this.data);
 
+        this.proxy = new GapProxy();
+    }
+
+    get data() {
+        return this.proxy.data;
+    }
+
+    compileTpl() {
+        if (this.isCompiled) {
+            return;
+        }
         this.proxy.compileTpl(this.tpl);
+        this.isCompiled = true;
     }
 
     get tpl() {
@@ -48,15 +61,21 @@ export class View {
         return new GapTpl(strs, ...items);
     }
 
+    filter(obj) {
+        return filterHolder.hold(obj);
+    }
+
     template() {
     }
 
     update(data) {
+        this.compileTpl();
         this.proxy.update(data);
     }
 
     appendTo(node) {
         if (node instanceof Node) {
+            this.compileTpl();
             node.appendChild(this.ctn);
         }
     }

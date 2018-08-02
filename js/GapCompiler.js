@@ -1,19 +1,23 @@
 import {textHolder} from './holder/textHolder';
 import {funHolder} from './holder/funHolder';
+import {objHolder} from './holder/objHolder';
 import {viewHolder} from './holder/viewHolder';
 
 import {ElemPropBinder} from './binder/ElemPropBinder';
-import {ViewBinder} from './binder/ViewBinder';
-import {ViewPropBinder} from './binder/ViewPropBinder';
+//import {ViewBinder} from './binder/ViewBinder';
+//import {ViewPropBinder} from './binder/ViewPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
 import {ArrBinder} from './binder/ArrBinder';
 import {Watcher} from './Watcher';
 
 export class GapCompiler {
-    constructor() {
+    constructor(tpl) {
         this.binders = {};
         this.watchers = {};
-        //this.proxy = proxy;
+        this.viewOpts = [];
+        if (tpl) {
+            this.compileTpl(tpl);
+        }
     }
 
     compileTpl(tpl) {
@@ -57,6 +61,72 @@ export class GapCompiler {
      * ></gap-view>
      **/
     compileGapView(node) {
+        const viewOpt = {
+            view: viewHolder.get(node.getAttribute('view')),
+            ctn: node,
+            ons: []
+        };
+
+        const bindMulti = {};
+
+        for (const attr of node.attributes) {
+            const attrName = attr.name;
+            const attrVal = attr.value;
+
+            if (attrName === 'ref') {
+                viewOpt.ref = funHolder.get(attrVal);
+                //funHolder.get(attrVal)(this.view);
+                continue;
+            }
+
+            if (attrName === 'bind') {
+                viewOpt.bind = attrVal;
+                continue;
+            }
+
+            if (attrName === 'bind-multi') {
+                viewOpt.bindMulti = objHolder.get(attrVal);
+                continue;
+            }
+
+            /*
+             * todo
+            if (attrName === 'prop') {
+                viewOpt.prop = objHolder.get(attrVal);
+            }
+            */
+
+
+            const sepIndex = attrName.indexOf('-');
+            if (sepIndex <= 0) {
+                continue;
+            }
+            const pre = attrName.substr(0, sepIndex);
+            const type = attrName.substr(sepIndex + 1);
+
+            if (pre === 'on') {
+                viewOpt.ons.push([type, funHolder.get(attrVal)]);
+                //this.view.on(type, funHolder.get(attrVal));
+                continue;
+            }
+
+            if (pre === 'bind') {
+                bindMulti[this.attrNameToVarName(type)] = attrVal;
+                continue;
+                //console.log('bind', type, attrVal);
+            }
+        }
+
+        if (viewOpt.bind && viewOpt.bindMulti) {
+            throw new Error('view.bind view.bindMulti cannot exist at same time');
+        }
+        Object.assign(bindMulti, viewOpt.bindMulti);
+        viewOpt.bindMulti = bindMulti;
+
+        this.viewOpts.push(viewOpt);
+
+        //const view = new viewClass();
+        /*
         const viewBinder = new ViewBinder(node);
         const bindAttr = node.getAttribute('bind');
         if (bindAttr) {
@@ -75,6 +145,7 @@ export class GapCompiler {
                 );
             }
         }
+        */
     }
 
     compileGapText(node) {
@@ -169,7 +240,7 @@ export class GapCompiler {
      * var1_part11_part12---var2_part21__---__part22
      * var1Part11Part12.var2Part21.Part22
      */
-    _toViewVarName(input) {
+    attrNameToVarName(input) {
         return (input + '')
             .toLowerCase()
             .replace(/_+(.)/g, (matched, p1) => p1.toUpperCase())

@@ -4,13 +4,13 @@ class UserView extends View {
     template() {
         return this.html`
         <span
-            bind-class=${{user: user => this.getClass(user)}}
+            bind-class=${this.filter({user: user => this.getClass(user)})}
         >
             $${'user.role'}
             -
-            $${{user: user => this.getSex(user)}}
+            $${this.filter({user: user => this.getSex(user)})}
             -
-            $${{'user.age': age => this.getAge(age)}}
+            $${this.filter({'user.age': age => this.getAge(age)})}
         </span>
         `;
     }
@@ -30,7 +30,7 @@ class UserView extends View {
             return 'female';
         }
 
-        console.log('data.user.sex', this.data.user.sex);
+        //console.log('data.user.sex', this.data.user.sex);
 
         throw new Error('user.sex is undefined');
     }

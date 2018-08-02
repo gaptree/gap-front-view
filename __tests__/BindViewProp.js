@@ -6,10 +6,6 @@ class UserView extends View {
         <div class="user">$${'name'} - $${'address'}</div>
         `;
     }
-
-    setName(name) {
-        this.data.name = name;
-    }
 }
 
 class BookView extends View {
@@ -27,14 +23,6 @@ class BookView extends View {
             </div>
         </div>
         `;
-    }
-
-    setAuthor(author) {
-        this.userView.update(author);
-    }
-
-    setAuthorName(name) {
-        this.userView.setName(name);
     }
 }
 
@@ -58,14 +46,14 @@ test('bind view prop', () => {
     expect(bookTitleElem.innerHTML.trim()).toBe('time history');
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">jack - yk</div>');
 
-    bookView.setAuthor({
+    bookView.data.book.author = {
         name: 'mike',
         address: 'sh'
-    });
+    };
 
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">mike - sh</div>');
 
-    bookView.setAuthorName('tom');
+    bookView.userView.data.name = 'tom';
     expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">tom - sh</div>');
 
     bookView.data.book.author = {

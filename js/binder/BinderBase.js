@@ -6,6 +6,8 @@ export class BinderBase {
 
     parseVal(inVal) {
         const val = this._toVal(inVal);
+        //console.log('BinderBase.update', val, this.handleFilter);
+
         if (this.handleFilter) {
             return this.handleFilter(val);
         }

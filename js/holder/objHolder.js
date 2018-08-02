@@ -1,23 +1,32 @@
-import {funHolder} from './funHolder';
+const objs = [];
+let objIndex = 0;
+
+const _hold = (obj, wrap = '"') => {
+    objs[objIndex] = obj;
+    return wrap + '%%' + objIndex++ + '%%' + wrap;
+};
 
 export const objHolder = {
     hold: (obj) => {
-        return '"' + Object.keys(obj).map(key => {
-            const val = obj[key];
-            if (typeof val === 'function') {
-                return key + '|' + funHolder.holdWithoutWrap(val);
-            } else if (typeof val === 'string') {
-                return key + '|' + val;
-            }
+        return _hold(obj);
+    },
 
-            throw new Error('error obj format for funHolder');
-        }).join(';') + '"';
+    holdWithoutWrap: (obj) => {
+        return _hold(obj, '');
+    },
+    get: (input) => {
+        if (!input) {
+            throw new Error('cannot be empty');
+        }
+
+        const index = parseInt(input.replace(/^"?%%|%%"?$/g, ''));
+        if (isNaN(index)) {
+            throw new Error('objHodler.get require "%%<num>%%", but received ' + input);
+        }
+
+        if (!objs[index]) {
+            throw new Error('Cannot find fun with index of ' + index);
+        }
+        return objs[index];
     }
 };
-/*
- * {
- *  a: 'str',
- *  fun: () => expr
- * }
- * "a|str;fun|$$1$$"
- */

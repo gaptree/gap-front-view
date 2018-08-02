@@ -1,5 +1,6 @@
 import {View} from '../index';
 
+/*
 class PremiumView extends View {
     template() {
         return this.html`
@@ -9,6 +10,7 @@ class PremiumView extends View {
         `;
     }
 }
+*/
 
 class BookView extends View {
     template() {
