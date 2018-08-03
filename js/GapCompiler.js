@@ -69,6 +69,8 @@ export class GapCompiler {
 
         const bindMulti = {};
 
+        // todo
+        // too much actions in loop
         for (const attr of node.attributes) {
             const attrName = attr.name;
             const attrVal = attr.value;
@@ -124,28 +126,6 @@ export class GapCompiler {
         viewOpt.bindMulti = bindMulti;
 
         this.viewOpts.push(viewOpt);
-
-        //const view = new viewClass();
-        /*
-        const viewBinder = new ViewBinder(node);
-        const bindAttr = node.getAttribute('bind');
-        if (bindAttr) {
-            this.addBinder(bindAttr, viewBinder);
-        }
-
-        for (const attr of node.attributes) {
-            const attrName = attr.name;
-            const attrVal = attr.value;
-
-            if (attrName.indexOf('bind-') === 0) {
-                const viewVarName = this._toViewVarName(attrName.substr(5));
-                this.addBinder(
-                    attrVal,
-                    new ViewPropBinder(viewBinder, viewVarName)
-                );
-            }
-        }
-        */
     }
 
     compileGapText(node) {

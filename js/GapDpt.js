@@ -30,7 +30,7 @@ export class GapDpt {
     }
 
     setVal(val) {
-        console.log('GapDpt.set', val);
+        //console.log('GapDpt.set', val);
         //console.log(this.props, this.parentObjs);
 
         if (this.currentVal === undefined || this.currentVal !== val) {
@@ -114,6 +114,7 @@ export class GapDpt {
                 if (ancestorDpt) {
                     return '[' + ancestorDpt.props.join(',') + ']';
                 }
+                return '[]';
             }).join('/');
 
             let query = '';

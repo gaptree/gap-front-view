@@ -66,7 +66,6 @@ export class GapProxy {
             if (opt.bind) {
                 view.proxy.data = this.queryGapObj(opt.bind);
             } else if (opt.bindMulti) {
-                // todo
                 Object.keys(opt.bindMulti).forEach(dstQuery => {
                     const srcQuery = opt.bindMulti[dstQuery];
                     const [dstPreQuery, dstProp] = this.parseQuery(dstQuery);
@@ -182,14 +181,15 @@ export class GapProxy {
 
     queryDpt(query) {
         if (this.dptQueries[query]) {
-            return;
+            return this.dptQueries[query];
         }
-        this.dptQueries[query] = 1;
 
-        //console.log('queryDpt', query);
         const [preQuery, prop] = this.parseQuery(query);
         const gapObj = this.queryGapObj(preQuery);
-        return gapObj.fetchDpt(prop);
+        const dpt = gapObj.fetchDpt(prop);
+        this.dptQueries[query] = dpt;
+
+        return dpt;
     }
 
     /*
