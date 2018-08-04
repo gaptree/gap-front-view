@@ -10,13 +10,11 @@ export class GapDpt {
         this.currentVal;
         this._isChanged = false;
 
-        //this.addParentObj(parentObj, prop);
-
         this.binders = [];
         this.watchers = [];
     }
 
-    addParentObj(parentObj, prop) {
+    addParentObj(prop, parentObj) {
         if (parentObj) {
             this.parentObjs.push(parentObj);
         }
@@ -30,9 +28,6 @@ export class GapDpt {
     }
 
     setVal(val) {
-        //console.log('GapDpt.set', val);
-        //console.log(this.props, this.parentObjs);
-
         if (this.currentVal === undefined || this.currentVal !== val) {
             this.currentVal = val;
             this.changed();
@@ -77,7 +72,9 @@ export class GapDpt {
     }
 
     addBinder(binder, filter) {
-        binder.onFilter(filter);
+        if (filter) {
+            binder.onFilter(filter);
+        }
         this.binders.push(binder);
     }
 
