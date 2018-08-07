@@ -13,7 +13,11 @@ export class ArrBinder extends BinderBase {
         this.itemAs = this.elem.getAttribute('item-as');
         this.itemKeyHandler = funHolder.get(this.elem.getAttribute('item-key'));
         this.itemTplhandler = funHolder.get(this.elem.innerHTML.trim());
-        this.itemFilterHandler = funHolder.get(this.elem.getAttribute('item-filter'));
+
+        const itemFilterAttr = this.elem.getAttribute('item-filter');
+        if (itemFilterAttr) {
+            this.itemFilterHandler = funHolder.get(this.elem.getAttribute('item-filter'));
+        }
 
         this.elem.innerHTML = '';
     }

@@ -14,8 +14,13 @@ export class GapArr extends GapObj {
 
         this.defineSecureProp('_reged', {
             curr: {},
-            prev: {}
+            prev: {},
+            indexes: {}
         });
+    }
+
+    _genKey(binderId, itemKey) {
+        return '' + binderId + '-' + itemKey;
     }
 
     regItemKey(binderId, itemKey) {
@@ -35,6 +40,11 @@ export class GapArr extends GapObj {
             delete(this._reged.prev[binderId][itemKey]);
         }
         return key;
+    }
+
+    mapIndex(binderId, itemKey, index) {
+        const key = this.regItemKey(binderId, itemKey);
+        this._reged.indexes[key] = index;
     }
 
     setItemDpt(binderId, itemKey, dpt) {
@@ -82,16 +92,27 @@ export class GapArr extends GapObj {
         this._arrBinders.push(arrBinder);
     }
 
-    update(src, txn) {
+    filter(handler) {
         this._reged.prev = this._reged.curr;
         this._reged.curr = {};
+        this._reged.indexes = {};
+        const oriArr = this._arr.splice(0, this._arr.length);
 
-        txn && txn.start();
+        oriArr
+            .filter(item => {
+                if (item) {
+                    return true;
+                }
+                return false;
+            })
+            .filter(handler).forEach(item => {
+                this._push(item);
+            });
 
-        src.forEach(item => {
-            this._push(item, txn);
-        });
+        this.clearPrev();
+    }
 
+    clearPrev() {
         this._arrBinders.forEach(arrBinder => {
             const binderId = arrBinder.id;
             if (!this._reged.prev[binderId]) {
@@ -102,6 +123,32 @@ export class GapArr extends GapObj {
             });
         });
 
+        Object.keys(this._reged.prev).forEach(binderId => {
+            Object.keys(this._reged.prev[binderId]).forEach(itemKey => {
+                const key = this._genKey(binderId, itemKey);
+                const dpt = this._itemDpts[key];
+
+                dpt && delete(this._dpts[dpt.id]);
+                delete(this._itemDpts[key]);
+                delete(this._itemProxies[key]);
+            });
+        });
+    }
+
+    update(src, txn) {
+        this._reged.prev = this._reged.curr;
+        this._reged.curr = {};
+        this._reged.indexes = {};
+        this._arr.splice(0, this._arr.length);
+
+        txn && txn.start();
+
+        src.forEach(item => {
+            this._push(item, txn);
+        });
+
+        this.clearPrev();
+
         txn && txn.end();
     }
 
@@ -110,6 +157,52 @@ export class GapArr extends GapObj {
         txn.start();
         this._push(item, txn);
         txn.end();
+    }
+
+    get(itemKey) {
+        let currentDpt;
+        this._arrBinders.forEach(arrBinder => {
+            const key = this._genKey(arrBinder.id, itemKey);
+            const dpt = this._itemDpts[key];
+            if (dpt) {
+                currentDpt = dpt;
+            }
+        });
+        if (currentDpt) {
+            return currentDpt.getVal();
+        }
+    }
+
+    /*
+    shift() {
+        const item = this._arr.shift();
+        this.delete(item);
+    }
+    */
+
+    pop() {
+        const item = this._arr.pop();
+        this.delete(item);
+    }
+
+    delete(item) {
+        this._arrBinders.forEach(arrBinder => {
+            const binderId = arrBinder.id;
+            const itemKey = arrBinder.itemToKey(item);
+            arrBinder.removeItem(itemKey);
+
+            // todo
+            const key = this._genKey(binderId, itemKey);
+            const dpt = this._itemDpts[key];
+            const index = this._reged.indexes[key];
+
+            delete(this._dpts[dpt.id]);
+            delete(this._itemDpts[key]);
+            delete(this._itemProxies[key]);
+            if (this._arr[index]) {
+                this._arr[index] = undefined;
+            }
+        });
     }
 
     _push(item, txn) {
@@ -147,6 +240,7 @@ export class GapArr extends GapObj {
                 itemProxy.compileTpl(tpl);
 
                 //console.log(itemProxy);
+                this.mapIndex(arrBinderId, itemKey, this._arr.length);
                 this._arr.push(item);
             }
 
@@ -155,4 +249,3 @@ export class GapArr extends GapObj {
         });
     }
 }
-
