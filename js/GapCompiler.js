@@ -13,7 +13,9 @@ import {Watcher} from './Watcher';
 export class GapCompiler {
     constructor(tpl) {
         this.binders = {};
+        this.arrs = {};
         this.watchers = {};
+
         this.viewOpts = [];
         if (tpl) {
             this.compileTpl(tpl);
@@ -140,7 +142,7 @@ export class GapCompiler {
             const attrVal = attr.value;
 
             if (attrName === 'arr' || attrName === 'array') {
-                this.addBinder(attrVal, new ArrBinder(elem));
+                this.addArr(attrVal, new ArrBinder(elem));
                 toRemoves.push('arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as');
                 continue;
             }
@@ -152,8 +154,6 @@ export class GapCompiler {
             }
 
             if (attrName === 'watch') {
-                //this.addBinder(attrVal, new WatchBinder(elem, this));
-                //this.addWatcher(attrVal, new Watcher(elem, this.proxy));
                 this.addWatcher(attrVal, new Watcher(elem));
                 toRemoves.push(attrName);
                 continue;
@@ -183,6 +183,18 @@ export class GapCompiler {
         toRemoves.forEach(attrName => elem.removeAttribute(attrName));
     }
 
+    _toVarObj(input) {
+        if (!input) {
+            return null;
+        }
+
+        const [name, filterStr] = input.split('|');
+        const filter = filterStr
+            && filterStr.indexOf('$$') === 0
+            && funHolder.get(filterStr);
+        return {name, filter};
+    }
+
     addBinder(query, binder) {
         const varObj = this._toVarObj(query);
 
@@ -196,16 +208,11 @@ export class GapCompiler {
         //this.proxy.addBinder(query, binder);
     }
 
-    _toVarObj(input) {
-        if (!input) {
-            return null;
+    addArr(query, binder) {
+        if (!this.arrs[query]) {
+            this.arrs[query] = [];
         }
-
-        const [name, filterStr] = input.split('|');
-        const filter = filterStr
-            && filterStr.indexOf('$$') === 0
-            && funHolder.get(filterStr);
-        return {name, filter};
+        this.arrs[query].push(binder);
     }
 
     addWatcher(query, watcher) {

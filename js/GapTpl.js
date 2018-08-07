@@ -20,7 +20,15 @@ export class GapTpl {
     }
 
     get nodes() {
-        return this.ctn.childNodes;
+        if (this._nodes) {
+            return this._nodes;
+        }
+        this._nodes = [];
+        for (const node of this.ctn.childNodes) {
+            this._nodes.push(node);
+        }
+        return this._nodes;
+        //return this.ctn.childNodes;
     }
 
     holdFun(fun) {

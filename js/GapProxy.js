@@ -1,6 +1,7 @@
 //import {fullUpdate} from './lib/fullUpdate';
 import {GapCompiler} from './GapCompiler';
 import {GapObj} from './GapObj';
+import {GapArr} from './GapArr';
 import {GapTxn} from './GapTxn';
 //import {GapDpt} from './GapDpt';
 
@@ -44,6 +45,19 @@ export class GapProxy {
             const dpt = this.queryDpt(query);
             compiler.binders[query].forEach(item => {
                 dpt.addBinder(item.binder, item.filter);
+            });
+        });
+
+        Object.keys(compiler.arrs).forEach(query => {
+            const [preQuery, prop] = this.parseQuery(query);
+            const preObj = this.queryGapObj(preQuery);
+            const gapArr = new GapArr();
+            preObj.addChild(prop, gapArr);
+            //const dpt = preObj.getDpt(prop);
+            compiler.arrs[query].forEach(arrBinder => {
+                gapArr.addArrBinder(arrBinder);
+                //gapArr.addKeyHandler(arrBinder.getKeyHandler());
+                //dpt.addBinder(arrBinder);
             });
         });
 
@@ -149,14 +163,9 @@ export class GapProxy {
         const [preQuery, prop] = this.parseQuery(query);
         const gapObj = this.queryGapObj(preQuery);
         if (!(gapObj[prop] instanceof GapObj)) {
-            gapObj.createChildObj(prop);
+            gapObj.addChild(prop, new GapObj());
+            //gapObj.createChildObj(prop);
         }
-        /*
-        if (!gapObj.hasOwnProperty(prop)) {
-            //gapObj[prop] = new GapObj({}, this.txn);
-            gapObj.createChildObj(prop);
-        }
-        */
         return gapObj[prop];
     }
 

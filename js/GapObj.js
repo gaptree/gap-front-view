@@ -2,9 +2,9 @@ import {GapDpt} from './GapDpt';
 //import {GapTxn} from './GapTxn';
 
 export class GapObj {
-    constructor(parentDpt) {
+    constructor() {
         this.defineSecureProp('_dpts', {});
-        this.defineSecureProp('_parentDpt', parentDpt);
+        //this.defineSecureProp('_parentDpt', parentDpt);
     }
 
     defineSecureProp(prop, defaultVal) {
@@ -13,6 +13,13 @@ export class GapObj {
             enumerable: false,
             get: () => defaultVal
         });
+    }
+
+    setParentDpt(parentDpt) {
+        if (this._parentDpt) {
+            throw new Error('parent dpt already defined');
+        }
+        this.defineSecureProp('_parentDpt', parentDpt);
     }
 
     getDpts() {
@@ -83,11 +90,16 @@ export class GapObj {
         return this.getDpt(prop);
     }
 
-    createChildObj(prop) {
-        const dpt = this.fetchDpt(prop);
-        const gapObj = new GapObj(dpt);
-        dpt.setVal(gapObj);
-        return gapObj;
+    addChild(prop, gapObj) {
+        if (gapObj instanceof GapObj) {
+            const dpt = this.fetchDpt(prop);
+            //const gapObj = new GapObj(dpt);
+            gapObj.setParentDpt(dpt);
+            dpt.setVal(gapObj);
+            return gapObj;
+        }
+
+        throw new Error('child must be instance of GapObj');
     }
 
     update(inSrc, txn) {
