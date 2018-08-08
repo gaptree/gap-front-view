@@ -4,152 +4,73 @@ import {GapDpt} from './GapDpt';
 import {GapTxn} from './GapTxn';
 
 export class GapArr extends GapObj {
-    constructor(parentDpt) {
-        super(parentDpt);
+    constructor() {
+        super();
 
-        this.defineSecureProp('_arr', []);
-        this.defineSecureProp('_arrBinders', []);
-        this.defineSecureProp('_itemProxies', {});
-        this.defineSecureProp('_itemDpts', {});
-
-        this.defineSecureProp('_reged', {
-            curr: {},
+        this.defineSecureProp('_arrBinders', {});
+        this.defineSecureProp('_subProxies', {});
+        this.defineSecureProp('_subDptIds', {});
+        this.defineSecureProp('_arr', {
+            curr: [],
             prev: {},
-            indexes: {}
         });
-    }
 
-    _genKey(binderId, itemKey) {
-        return '' + binderId + '-' + itemKey;
-    }
-
-    regItemKey(binderId, itemKey) {
-        const key = '' + binderId + '-' + itemKey;
-        if (!this._reged.curr[binderId]) {
-            this._reged.curr[binderId] = {};
-        }
-        if (this._reged.curr[binderId][itemKey]) {
-            return key;
-        }
-
-        this._reged.curr[binderId][itemKey] = 1;
-        if (!this._reged.prev[binderId]) {
-            this._reged.prev[binderId] = {};
-        }
-        if (this._reged.prev[binderId][itemKey]) {
-            delete(this._reged.prev[binderId][itemKey]);
-        }
-        return key;
-    }
-
-    mapIndex(binderId, itemKey, index) {
-        const key = this.regItemKey(binderId, itemKey);
-        this._reged.indexes[key] = index;
-    }
-
-    setItemDpt(binderId, itemKey, dpt) {
-        const key = this.regItemKey(binderId, itemKey);
-        this._itemDpts[key] = dpt;
-    }
-
-    hasItemDpt(binderId, itemKey) {
-        const key = this.regItemKey(binderId, itemKey);
-        return this._itemDpts.hasOwnProperty(key);
-    }
-
-    getItemDpt(binderId, itemKey) {
-        const key = this.regItemKey(binderId, itemKey);
-        return this._itemDpts[key];
-    }
-
-    fetchItemDpt(binderId, itemKey) {
-        if (this.hasItemDpt(binderId, itemKey)) {
-            return this.getItemDpt(binderId, itemKey);
-        }
-
-        const dpt = new GapDpt();
-        this.setDpt(dpt.id, dpt);
-        this.setItemDpt(binderId, itemKey, dpt);
-        return dpt;
-    }
-
-    hasItemProxy(binderId, itemKey) {
-        const key = this.regItemKey(binderId, itemKey);
-        return this._itemProxies.hasOwnProperty(key);
-    }
-
-    getItemProxy(binderId, itemKey) {
-        const key = this.regItemKey(binderId, itemKey);
-        if (this._itemProxies.hasOwnProperty(key)) {
-            return this._itemProxies[key];
-        }
-
-        this._itemProxies[key] = new GapProxy();
-        return this._itemProxies[key];
+        //this._initLength();
     }
 
     addArrBinder(arrBinder) {
-        this._arrBinders.push(arrBinder);
-    }
-
-    filter(handler) {
-        this._reged.prev = this._reged.curr;
-        this._reged.curr = {};
-        this._reged.indexes = {};
-        const oriArr = this._arr.splice(0, this._arr.length);
-
-        oriArr
-            .filter(item => {
-                if (item) {
-                    return true;
-                }
-                return false;
-            })
-            .filter(handler).forEach(item => {
-                this._push(item);
-            });
-
-        this.clearPrev();
-    }
-
-    clearPrev() {
-        this._arrBinders.forEach(arrBinder => {
-            const binderId = arrBinder.id;
-            if (!this._reged.prev[binderId]) {
-                return;
-            }
-            Object.keys(this._reged.prev[binderId]).forEach(key => {
-                arrBinder.removeItem(key);
-            });
-        });
-
-        Object.keys(this._reged.prev).forEach(binderId => {
-            Object.keys(this._reged.prev[binderId]).forEach(itemKey => {
-                const key = this._genKey(binderId, itemKey);
-                const dpt = this._itemDpts[key];
-
-                dpt && delete(this._dpts[dpt.id]);
-                delete(this._itemDpts[key]);
-                delete(this._itemProxies[key]);
-            });
-        });
+        this._arrBinders[arrBinder.id] = arrBinder;
     }
 
     update(src, txn) {
-        this._reged.prev = this._reged.curr;
-        this._reged.curr = {};
-        this._reged.indexes = {};
-        this._arr.splice(0, this._arr.length);
+        this._prepareArr();
 
         txn && txn.start();
-
-        src.forEach(item => {
+        
+        for (let index = 0; index < src.length; index++) {
+            const item = src[index];
             this._push(item, txn);
-        });
+        }
 
-        this.clearPrev();
+        this._clearPrevAndSort();
 
         txn && txn.end();
+    }
+
+    // array
+    delete(item) {
+        this._forEachArrBinder(arrBinder => {
+            const itemKey = arrBinder.itemToKey(item);
+            arrBinder.removeItemByKey(itemKey);
+
+            const subKey = this._genSubKey(arrBinder.Id, itemKey);
+            const subDptId = this._getSubDptId(subKey);
+            //const dpt = this._getDpt(subDptId);
+            delete(this._dpts[subDptId]);
+            delete(this._subProxies[subKey]);
+            delete(this._subDptIds[subKey]);
+        });
+    }
+
+    get(itemKey) {
+        let currentDpt;
+        this._forEachArrBinder(arrBinder => {
+            const subKey = this._genSubKey(arrBinder.id, itemKey);
+            const dptId = this._getSubDptId(subKey);
+            const dpt = this._getDpt(dptId);
+            if (currentDpt) {
+                if (dpt && currentDpt.id !== dpt.id) {
+                    throw new Error('dpt.id not match');
+                }
+            } else {
+                if (dpt) {
+                    currentDpt = dpt;
+                }
+            }
+        });
+        if (currentDpt) {
+            return currentDpt.getVal();
+        }
     }
 
     push(item) {
@@ -159,93 +80,223 @@ export class GapArr extends GapObj {
         txn.end();
     }
 
-    get(itemKey) {
-        let currentDpt;
-        this._arrBinders.forEach(arrBinder => {
-            const key = this._genKey(arrBinder.id, itemKey);
-            const dpt = this._itemDpts[key];
-            if (dpt) {
-                currentDpt = dpt;
-            }
-        });
-        if (currentDpt) {
-            return currentDpt.getVal();
-        }
-    }
-
-    /*
-    shift() {
-        const item = this._arr.shift();
-        this.delete(item);
-    }
-    */
-
     pop() {
-        const item = this._arr.pop();
+        const dptId = this._arr.curr.pop();
+        const dpt = this._getDpt(dptId);
+        const item = dpt.getVal();
         this.delete(item);
     }
 
-    delete(item) {
-        this._arrBinders.forEach(arrBinder => {
-            const binderId = arrBinder.id;
-            const itemKey = arrBinder.itemToKey(item);
-            arrBinder.removeItem(itemKey);
+    shift() {
+        const dptId = this._arr.curr.shift();
+        const dpt = this._getDpt(dptId);
+        const item = dpt.getVal();
+        this.delete(item);
+    }
 
-            // todo
-            const key = this._genKey(binderId, itemKey);
-            const dpt = this._itemDpts[key];
-            const index = this._reged.indexes[key];
+    unshift(item) {
+        throw new Error('todo');
 
-            delete(this._dpts[dpt.id]);
-            delete(this._itemDpts[key]);
-            delete(this._itemProxies[key]);
-            if (this._arr[index]) {
-                this._arr[index] = undefined;
-            }
+        const txn = new GapTxn();
+        txn.start();
+        this._push(item, txn);
+        txn.end();
+    }
+
+    // extends from array
+    get length() {
+        return this._arr.curr.length;
+    }
+
+    filter(handler) {
+        const oriArr = [];
+        this._arr.curr.forEach(item => oriArr.push(item));
+
+        this._prepareArr();
+
+        oriArr
+            .filter(dptId => {
+                if (dptId) {
+                    return true;
+                }
+                return false;
+            })
+            .map(dptId => this._getDpt(dptId).getVal()) // to check
+            .filter(handler).forEach(item => {
+                this._push(item);
+            });
+
+        this._clearPrevAndSort();
+    }
+
+
+
+    // private fun
+
+    _forEachArrBinder(handler) {
+        Object.keys(this._arrBinders).forEach(arrBinderId => {
+            handler(this._arrBinders[arrBinderId]);
         });
     }
 
     _push(item, txn) {
         let currentDpt;
-
-        this._arrBinders.forEach(arrBinder => {
+        Object.keys(this._arrBinders).forEach(arrBinderId => {
+            const arrBinder = this._arrBinders[arrBinderId];
             if (!arrBinder.filterItem(item)) {
                 return;
             }
 
-            const arrBinderId = arrBinder.id;
             const itemKey = arrBinder.itemToKey(item);
-            const hasItemProxy = this.hasItemProxy(arrBinderId, itemKey);
-            const itemProxy = this.getItemProxy(arrBinderId, itemKey);
+            const subKey = this._genSubKey(arrBinder.id, itemKey);
+            const hasSubProxy = this._hasSubProxy(subKey);
+            const subProxy = this._fetchSubProxy(subKey);
+            const subDptId = this._getSubDptId(subKey);
 
             if (currentDpt) {
-                const existed = this.getItemProxy(arrBinderId, itemKey);
-                if (!existed) {
-                    this.setItemDpt(arrBinderId, itemKey);
-                } else {
-                    if (existed.id !== currentDpt.id) {
-                        throw new Error('dpt.id not match');
-                    }
+                if (subDptId === undefined) {
+                    this._setSubDptId(subKey, currentDpt.id);
+                } else if (currentDpt.id !== subDptId) {
+                    throw new Error('dpt.id not match');
                 }
             } else {
-                currentDpt = this.fetchItemDpt(arrBinderId, itemKey);
+                if (subDptId === undefined) {
+                    currentDpt = new GapDpt();
+                    this._setDpt(currentDpt.id, currentDpt);
+                    this._setSubDptId(subKey, currentDpt.id);
+                } else {
+                    currentDpt = this._getDpt(subDptId);
+                }
             }
 
-            if (!hasItemProxy) {
+            if (!hasSubProxy) {
                 const tpl = arrBinder.fetchTpl(itemKey);
                 const itemAs = arrBinder.itemAs;
 
-                // todo
-                itemProxy.data.appendDpt(itemAs, currentDpt);
-                itemProxy.compileTpl(tpl);
+                subProxy.data.appendDpt(itemAs, currentDpt);
+                subProxy.compileTpl(tpl);
 
-                //console.log(itemProxy);
-                this.mapIndex(arrBinderId, itemKey, this._arr.length);
-                this._arr.push(item);
             }
-
-        
-            this.set(currentDpt.id, item, txn);
         });
+
+        if (currentDpt) {
+            this._arr.curr.push(currentDpt.id);
+            this._defineIndex(this._arr.curr.length - 1);
+
+            const currentGapObj = currentDpt.getVal();
+            if (!(currentGapObj instanceof GapObj)) {
+                throw new Error('to check must be GapObj');
+            }
+            currentGapObj.update(item, txn);
+        }
+    }
+
+    _genSubKey(arrBinderId, itemKey) {
+        return '' + arrBinderId + '-' + itemKey;
+    }
+
+    _prepareArr() {
+        this._arr.prev = {};
+        this._arr.curr.forEach(dptId => {
+            this._arr.prev[dptId] = 1;
+        });
+        this._arr.curr = [];
+    }
+
+    _hasSubDptId(subKey) {
+        return this._subDptIds.hasOwnProperty(subKey);
+    }
+
+    _setSubDptId(subKey, dptId) {
+        if (this._hasSubDptId(subKey)) {
+            throw new Error('duplicate subDpt: ' + subKey);
+        }
+        this._subDptIds[subKey] = dptId;
+    }
+
+    _getSubDptId(subKey) {
+        return this._subDptIds[subKey];
+    }
+
+    _hasSubProxy(subKey) {
+        return this._subProxies.hasOwnProperty(subKey);
+    }
+
+    _fetchSubProxy(subKey) {
+        if (this._hasSubProxy(subKey)) {
+            return this._subProxies[subKey];
+        }
+
+        this._subProxies[subKey] = new GapProxy();
+        return this._subProxies[subKey];
+    }
+
+    _defineIndex(index) {
+        Object.defineProperty(this, index, {
+            enumerable: true,
+            configurable: true,
+            get: () => {
+                const dptId = this._arr.curr[index];
+                if (!dptId) {
+                    return;
+                }
+                const dpt = this._getDpt(dptId);
+                if (dpt) {
+                    return dpt.getVal();
+                }
+            },
+            set: (val) => {
+                const dpt = this._arr[index];
+                if (!dpt) {
+                    throw new Error('todo');
+                }
+                dpt.setVal(val);
+            }
+        });
+    }
+
+    /*
+    _initLength() {
+        let length = 0;
+        Object.defineProperty(this, 'length', {
+            enumerable: false,
+            get: () => length,
+            set: (val) => length = val
+        });
+    }
+    */
+
+    _setDpt(dptId, dpt) {
+        this._dpts[dptId] = dpt;
+    }
+
+    _getDpt(dptId) {
+        return this._dpts[dptId];
+    }
+
+    _clearPrevAndSort() {
+        const currItems = [];
+
+        this._arr.curr.forEach(dptId => {
+            currItems.push(this._getDpt(dptId).getVal());
+            if (this._arr.prev[dptId]) {
+                delete(this._arr.prev[dptId]);
+            }
+        });
+
+        Object.keys(this._arr.prev).forEach(dptId => {
+            const dpt = this._getDpt(dptId);
+            if (dpt) {
+                this.delete(dpt.getVal());
+            }
+        });
+
+        /*
+         * todo
+        Object.keys(this._arrBinders).forEach(arrBinderId => {
+            const arrBinder = this._arrBinders[arrBinderId];
+            arrBinder.sort(currItems);
+        });
+        */
     }
 }

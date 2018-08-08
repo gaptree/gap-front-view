@@ -22,12 +22,12 @@ class UserListView extends View {
         `;
     }
 
-    updateUser(user) {
-        this.data.users.push(user);
+    unshiftUser(user) {
+        this.data.users.unshift(user);
     }
 }
 
-test('bind arr update elem', () => {
+test('bind arr unshift', () => {
     const userListView = new UserListView();
     userListView.appendTo(document.body);
 
@@ -42,15 +42,23 @@ test('bind arr update elem', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
 
-    userListView.updateUser({
-        userId: 'id3',
+    userListView.unshiftUser({
+        userId: 'id4',
         name: 'tom',
         age: 28,
         address: 'hz'
     });
 
-    expect(userListView.data.users['2'].address).toBe('hz');
+    expect(document.body.innerHTML.trim())
+        .toBe('<div><span id="id4"> tom - 28 - hz </span><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
+
+    userListView.unshiftUser({
+        userId: 'id4',
+        name: 'tom',
+        age: 23,
+        address: 'shanghai'
+    });
 
     expect(document.body.innerHTML.trim())
-        .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> tom - 28 - hz </span></div>');
+        .toBe('<div><span id="id4"> tom - 23 - shanghai </span><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
 });

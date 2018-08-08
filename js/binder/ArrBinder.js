@@ -79,10 +79,25 @@ export class ArrBinder extends BinderBase {
         return this.tplDict[key];
     }
 
-    removeItem(key) {
+    removeItemByKey(key) {
         const tpl = this.tplDict[key];
         if (tpl) {
             tpl.remove();
         }
+    }
+
+    sort(items) {
+        items.forEach(item => {
+            if (!item) {
+                return;
+            }
+            if (!this.filterItem(item)) {
+                return;
+            }
+
+            const key = this.itemToKey(item);
+            const tpl = this.fetchTpl(key);
+            this.elem.appendChild(tpl.nodes[0]);
+        });
     }
 }
