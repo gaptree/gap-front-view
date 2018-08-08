@@ -1,12 +1,12 @@
 export class GapWrap {
-    constructor() {
-        //this.binders = [];
+    constructor(query) {
+        this.query = query;
         this.binders = {};
         this.val;
     }
 
-    clearScope(scope) {
-        this.binders[scope] = [];
+    getQuery() {
+        return this.query;
     }
 
     isEqual(inVal) {
@@ -17,26 +17,28 @@ export class GapWrap {
         return (this.val === inVal);
     }
 
+    /*
     setVal(inVal) {
+        console.log('GapWrap.setVal', this.query, inVal);
         this.val = inVal;
     }
+    */
 
     getVal() {
         return this.val;
     }
 
-    changed() {
-        Object.keys(this.binders).forEach(scope => {
-            this.changedByScope(scope);
-        });
-    }
-
-    changedByScope(scope) {
-        const subBinders = this.binders[scope];
-        subBinders.forEach(binder => binder.update(this.getVal()));
-    }
-
-    addBinder(scope, binder) {
+    addBinder(binder, scope = 'default') {
+        if (!this.binders[scope]) {
+            this.binders[scope] = [];
+        }
         this.binders[scope].push(binder);
+    }
+
+    commitChanging(val) {
+        this.val = val;
+        Object.keys(this.binders).forEach(scope => {
+            this.binders[scope].forEach(binder => binder.update(val));
+        });
     }
 }

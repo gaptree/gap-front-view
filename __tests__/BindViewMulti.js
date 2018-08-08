@@ -1,9 +1,11 @@
 import {View} from '../index';
 
-class UserView extends View {
+class CoverView extends View {
     template() {
         return this.html`
-        <div class="user">$${'name'} - $${'address'}</div>
+        <div class="cover">
+            $${'title'} - $${'author.name'} - $${'author.address'}
+        </div>
         `;
     }
 }
@@ -15,10 +17,9 @@ class BookView extends View {
             <span class="book-title">$${'book.title'}</span>
             <div class="book-author">
             <gap-view
-                ref=${view => this.userView = view}
-                view=${new UserView()}
-                bind-name="book.author.name"
-                bind-address="book.author.address"
+                ref=${view => this.coverView = view}
+                view=${new CoverView()}
+                bind-multi=${{title: 'book.title', 'author.name': 'book.author.name', 'author.address': 'book.author.address'}}
             ></gap-view>
             </div>
         </div>
@@ -41,24 +42,28 @@ test('bind view prop', () => {
     });
 
     const bookTitleElem = document.querySelector('.book-title');
-    const bookAuthorElem = document.querySelector('.book-author');
+    const coverElem = document.querySelector('.cover');
 
     expect(bookTitleElem.innerHTML.trim()).toBe('time history');
-    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">jack - yk</div>');
+    expect(coverElem.innerHTML.trim()).toBe('time history - jack - yk');
 
     bookView.data.book.author = {
         name: 'mike',
         address: 'sh'
     };
 
-    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">mike - sh</div>');
+    expect(coverElem.innerHTML.trim()).toBe('time history - mike - sh');
 
-    bookView.userView.data.name = 'tom';
-    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">tom - sh</div>');
+    bookView.coverView.data.author.name = 'tom';
+    expect(coverElem.innerHTML.trim()).toBe('time history - tom - sh');
 
     bookView.data.book.author = {
         name: 'tom-changed',
         address: 'sh-changed'
     };
-    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">tom-changed - sh-changed</div>');
+    expect(coverElem.innerHTML.trim()).toBe('time history - tom-changed - sh-changed');
+
+    bookView.coverView.data.title = 'future history';
+    expect(coverElem.innerHTML.trim()).toBe('future history - tom-changed - sh-changed');
+    expect(bookTitleElem.innerHTML.trim()).toBe('future history');
 });

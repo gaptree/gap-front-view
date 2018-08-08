@@ -9,7 +9,7 @@ class UserListView extends View {
             item-key=${user => user.userId}
         >
             ${(key) => this.html`
-                <span trigger='user.age'>
+                <span watch='user.age'>
                 ${() => this.triggerAge(this.data.users.get(key))}
                 </span>
             `}
@@ -18,7 +18,7 @@ class UserListView extends View {
     }
 
     updateUser(user) {
-        this.data.users.update(user);
+        this.data.users.push(user);
     }
 
     triggerAge(user) {

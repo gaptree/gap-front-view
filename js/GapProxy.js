@@ -1,367 +1,282 @@
-import {getFun} from './lib/holder';
-import {ElemPropBinder} from './binder/ElemPropBinder';
-import {ViewBinder} from './binder/ViewBinder';
-import {ViewPropBinder} from './binder/ViewPropBinder';
-import {TextNodeBinder} from './binder/TextNodeBinder';
-import {ArrBinder} from './binder/ArrBinder';
-import {WatchBinder} from './binder/WatchBinder';
-import {GapWrap} from './GapWrap';
-
-const parseDataProp = (inProp) => {
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
-    if (!inProp) {
-        return null;
-    }
-
-    const [name, filterStr] = inProp.split('|');
-    const filter = filterStr
-        && filterStr.indexOf('$$') === 0
-        && getFun(filterStr);
-    return {name, filter};
-};
-
-//const wraps = {};
+//import {fullUpdate} from './lib/fullUpdate';
+import {GapCompiler} from './GapCompiler';
+import {GapObj} from './GapObj';
+import {GapArr} from './GapArr';
+import {GapTxn} from './GapTxn';
+//import {GapDpt} from './GapDpt';
 
 export class GapProxy {
-    constructor(data = {}) {
-        this.data = data;
-        this.wraps = {};
-        this.scopeWraps = {};
+    constructor() {
+        //this.data = (data instanceof GapObj) ? data : new GapObj();
+        this.dpts = {};
+        this.dptQueries = {};
+
+        this.views = [];
     }
 
-    updateAll(inData, scope) {
-        this.deepUpdate(this.data, inData, scope);
+    get data() {
+        this._data = this._data  || new GapObj();
+        return this._data;
     }
 
-    deepUpdate(res, inSrc, scope) {
-        if (!(res instanceof Object)) {
-            return;
+    set data(data) {
+        if (data instanceof GapObj) {
+            this._data = data;
+        } else {
+            throw new Error('proxy.data should be GapObj');
         }
+    }
 
-        if (!(inSrc instanceof Object)) {
-            return;
-        }
+    update(data) {
+        const txn = new GapTxn();
 
-        const src = Object.assign({}, inSrc);
+        txn.start();
+        this.data.update(data, txn);
+        txn.end();
+    }
 
-        this.startChange();
+    updateWithoutTxn(data) {
+        this.data.update(data);
+    }
 
-        Object.keys(res).forEach(key => {
-            if (!src[key]) {
-                res[key] = undefined;
-                return;
-            }
-
-            const srcItem = src[key];
-            delete(src[key]);
-
-            if (res[key] instanceof Array
-                && srcItem instanceof Array
-            ) {
-                res[key] = srcItem;
-                return;
-            }
-
-            if (res[key] instanceof Object
-                && srcItem instanceof Object
-            ) {
-                this.deepUpdate(res[key], srcItem);
-                return;
-            }
-
-            res[key] = srcItem;
+    compileTpl(tpl) {
+        const compiler = new GapCompiler(tpl);
+        Object.keys(compiler.binders).forEach(query => {
+            const dpt = this.queryDpt(query);
+            compiler.binders[query].forEach(item => {
+                dpt.addBinder(item.binder, item.filter);
+            });
         });
 
-        Object.keys(src).forEach(key => {
-            res[key] = src[key];
+        Object.keys(compiler.arrs).forEach(query => {
+            const [preQuery, prop] = this.parseQuery(query);
+            const preObj = this.queryGapObj(preQuery);
+            const gapArr = new GapArr();
+            preObj.addChild(prop, gapArr);
+            //const dpt = preObj.getDpt(prop);
+            compiler.arrs[query].forEach(arrBinder => {
+                gapArr.addArrBinder(arrBinder);
+                //gapArr.addKeyHandler(arrBinder.getKeyHandler());
+                //dpt.addBinder(arrBinder);
+            });
         });
 
-        this.commitChange(scope);
+        Object.keys(compiler.watchers).forEach(query => {
+            const dpt = this.queryDpt(query);
+            compiler.watchers[query].forEach(watcher => {
+                dpt.addWatcher(watcher);
+            });
+            /*
+            this.defineWatcherQuery(query);
+            compiler.watchers[query].forEach(watcher => {
+                this.addWatcher(query, watcher);
+            });
+            */
+        });
+
+        compiler.viewOpts.forEach(opt => {
+            //const viewData = opt.bind ? this.getDataObj(opt.bind) : null;
+            const view = opt.view;
+            if (opt.bind) {
+                view.proxy.data = this.queryGapObj(opt.bind);
+            } else if (opt.bindMulti) {
+                Object.keys(opt.bindMulti).forEach(dstQuery => {
+                    const srcQuery = opt.bindMulti[dstQuery];
+                    const [dstPreQuery, dstProp] = this.parseQuery(dstQuery);
+                    const srcDpt = this.queryDpt(srcQuery);
+                    view.proxy.queryGapObj(dstPreQuery).appendDpt(dstProp, srcDpt);
+                });
+            }
+
+            view.compileTpl();
+
+            this.views.push(view);
+            opt.ctn.replace(view.ctn);
+            if (opt.ref) {
+                opt.ref(view);
+            }
+            opt.ons.forEach(item => {
+                view.on(item[0], item[1]);
+            });
+
+            /*
+            let viewData;
+            if (opt.bind) {
+                viewData = this.getDataObj(opt.bind);
+                //this.defineObjQuery(opt.bind);
+            }
+
+            //console.log(opt);
+            //console.log(this.data.book);
+
+            const viewClass = opt.viewClass;
+            const viewProp = opt.prop;
+            const view = new viewClass(viewProp, viewData, this.txn);
+            this.views.push(view);
+            opt.ctn.replace(view.ctn);
+
+            const ref = opt.ref;
+            if (ref) {
+                ref(view);
+            }
+
+            //console.log(view);
+            //console.log(this.data.book.author);
+            //*/
+        });
+
+        console.log('compileTpl', Object.keys(this.dptQueries));
     }
 
-    getWrap(prop) {
-        this.scopeWraps[this.scope] = this.scopeWraps[this.scope] || {};
-        if (this.scopeWraps[this.scope][prop]) {
-            return this.scopeWraps[this.scope][prop];
+    /*
+    extractViewData(bind) {
+        if (typeof bind === 'string') {
+            return this.getDataObj(bind);
         }
 
-        this.wraps[prop] = this.wraps[prop] || new GapWrap();
-        this.wraps[prop].clearScope(this.scope);
-        this.scopeWraps[this.scope][prop] = this.wraps[prop];
-        return this.scopeWraps[this.scope][prop];
+        const dpts = {};
+        if (bind instanceof Object) {
+            Object.keys(bind).forEach(key => {
+                dpts[key] = this.getDpt(bind[key]);
+            });
+        }
+    }
+    */
+
+    /*
+    addWatcher(query, watcher) {
+        const dpt = this.getDpt(query);
+        dpt.addWatcher(watcher);
     }
 
-    hasWrap(prop) {
-        return this.wraps[prop] ? true : false;
+    addBinder(query, binder, filter) {
+        const dpt = this.getDpt(query);
+        binder.onFilter(filter);
+        dpt.addBinder(binder);
+    }
+    */
+
+    queryGapObj(query) {
+        if (query === '') {
+            return this.data;
+        }
+        const [preQuery, prop] = this.parseQuery(query);
+        const gapObj = this.queryGapObj(preQuery);
+        if (!(gapObj[prop] instanceof GapObj)) {
+            gapObj.addChild(prop, new GapObj());
+            //gapObj.createChildObj(prop);
+        }
+        return gapObj[prop];
     }
 
-    defineQuery(inObj, oriQuery, inQuery = null) {
-        const query = inQuery || oriQuery;
-        const pos = query.indexOf('.');
+    /*
+    getDataObj(objQuery) {
+        //console.log('getDataObj', objQuery);
 
-        const prop = pos < 0 ? query : query.substr(0, pos);
-        const nextQuery = pos < 0 ? '' : query.substr(pos + 1);
+        if (objQuery === '') {
+            return this.data;
+        }
+        const pos = objQuery.lastIndexOf('.');
+        const preQuery = pos < 0 ? '' : objQuery.substr(0, pos);
+        const prop = pos < 0 ? objQuery : objQuery.substr(pos + 1);
+        const obj = this.getDataObj(preQuery);
+        //obj[prop] = obj[prop] || {};
+        if (!obj[prop]) {
+            obj[prop] = {};
+        }
+        return obj[prop];
+    }
+    */
 
-        if (nextQuery) {
-            inObj[prop] = inObj[prop] || {};
-            this.defineProp(inObj, oriQuery.substr(0, oriQuery.indexOf(nextQuery) - 1), prop);
-            this.defineQuery(inObj[prop], oriQuery, nextQuery);
+    queryDpt(query) {
+        if (this.dptQueries[query]) {
+            return this.dptQueries[query];
+        }
+
+        const [preQuery, prop] = this.parseQuery(query);
+        const gapObj = this.queryGapObj(preQuery);
+        const dpt = gapObj.fetchDpt(prop);
+        this.dptQueries[query] = dpt;
+
+        return dpt;
+    }
+
+    /*
+    defineBinderQuery(query) {
+        this.defineQuery(query, 'binder');
+    }
+
+    defineWatcherQuery(query) {
+        this.defineQuery(query, 'watcher');
+    }
+
+    defineObjQuery(query) {
+        this.defineQuery(query, 'obj');
+    }
+    */
+
+    /*
+    defineQuery(query, type) {
+        if (this.definedQueries[type][query]) {
             return;
         }
+        this.definedQueries[type][query] = 1;
+        //console.log('defineQuery', '[' + query + ']', type);
 
-        this.defineProp(inObj, oriQuery, prop);
-    }
+        const [preQuery, prop] = this.parseQuery(query);
+        const gapObj = this.queryGapObj(preQuery);
+        gapObj.defineProp(prop);
+        return;
 
-    defineProp(inObj, oriQuery, prop) {
-        const descriptor = Object.getOwnPropertyDescriptor(inObj, prop);
-        if (descriptor && descriptor.configurable === false) {
-            return;
+        const currentVal = obj[prop];
+        if (preQuery) {
+            this.defineObjQuery(preQuery);
+        }
+        const currentDpt = this.getCurrentDpt(query, preQuery, prop, currentVal);
+        if (type === 'watcher') {
+            currentDpt.activeWatcherHandler();
         }
 
-        const val = inObj[prop];
-        const wrap = this.getWrap(oriQuery);
-        wrap.setVal(val);
-
-        Object.defineProperty(inObj, prop, {
+        //console.log(currentDpt);
+        Object.defineProperty(obj, prop, {
             enumerable: true,
             configurable: true,
-            get: () => wrap.getVal(),
-            set: (defVal) => {
-                if (wrap.isEqual(defVal)) {
-                    return;
-                }
-
-                this.startChange();
-
-                // todo
-                if (defVal instanceof Array) {
-                    wrap.setVal(defVal);
-                } else if (defVal instanceof Object) {
-                    const wrapVal = wrap.getVal();
-                    if (wrapVal instanceof Object) {
-                        this.deepUpdate(wrap.getVal(), defVal);
-                    } else {
-                        wrap.setVal(defVal);
-                    }
-                } else {
-                    wrap.setVal(defVal);
-                }
-
-                this.changedRecursive(oriQuery);
-                this.commitChange();
-            }
+            get: currentDpt.getter(),
+            set: currentDpt.setter()
         });
     }
+    */
 
-    compile(tpl, scope = '') {
-        this.scope = scope;
-        this.clearScope(scope);
-        this.isCompiling = true;
-        tpl.nodes.forEach(tplElem => this.compileNode(tplElem));
-        this.isCompiling = false;
+    /*
+    getDpt(query) {
+        if (this.dpts[query]) {
+            return this.dpts[query];
+        }
+        this.dpts[query] = new GapDpt(this.txn);
+        return this.dpts[query];
     }
+    */
 
-    clearScope(scope) {
-        this.scopeWraps[scope] = {};
+    // fun
+    /*
+    getCurrentDpt(query, preQuery, prop, currentVal) {
+        const parentDpt = preQuery ? this.getDpt(preQuery) : null;
+        const currentDpt = this.getDpt(query);
+        if (parentDpt && !currentDpt.parent) {
+            currentDpt.parent = parentDpt;
+        }
+        if (!currentDpt.prop) {
+            currentDpt.prop = prop;
+        }
+        currentDpt.currentVal = currentVal;
+        return currentDpt;
     }
+    */
 
-    compileNode(node) {
-        if (!node.attributes) {
-            return;
-        }
-
-        if (node._compiled) {
-            return;
-        }
-
-        node._compiled = true;
-
-        if (node.tagName === 'GAP-VIEW') {
-            this.compileGapView(node);
-        } else if (node.tagName === 'GAP-TEXT') {
-            this.compileGapText(node);
-        } else {
-            this.compileElem(node);
-        }
-
-        this.compileNodeCollection(node.children);
-    }
-
-    compileNodeCollection(nodeCollection) {
-        for (const node of nodeCollection) {
-            this.compileNode(node);
-        }
-    }
-
-    compileGapView(node) {
-        const viewBinder = new ViewBinder(node);
-        const bindAttr = node.getAttribute('bind');
-        if (bindAttr) {
-            this.addBinder(bindAttr, viewBinder);
-        }
-
-        for (const attr of node.attributes) {
-            const attrName = attr.name;
-            const attrVal = attr.value;
-            if (attrName.indexOf('bind-') === 0) {
-                const prop = attrName.substr(5);
-                this.addBinder(
-                    attrVal,
-                    new ViewPropBinder(viewBinder, prop)
-                );
-            }
-        }
-    }
-
-    compileGapText(node) {
-        this.addBinder(node.getAttribute('bind'), new TextNodeBinder(node));
-    }
-
-    compileElem(elem) {
-        const toRemoves = [];
-
-        for (const attr of elem.attributes) {
-            const attrName = attr.name;
-            const attrVal = attr.value;
-
-            if (attrName === 'arr' || attrName === 'array') {
-                this.addBinder(attrVal, new ArrBinder(elem));
-                toRemoves.push('arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as');
-                continue;
-            }
-
-            if (attrName === 'ref') {
-                getFun(attrVal)(elem);
-                toRemoves.push(attrName);
-                continue;
-            }
-
-            if (attrName === 'trigger' || attrName === 'watch') {
-                this.addBinder(attrVal, new WatchBinder(elem, this));
-                toRemoves.push(attrName);
-                continue;
-            }
-
-            const sepIndex = attrName.indexOf('-');
-
-            if (sepIndex <= 0) {
-                continue;
-            }
-
-            const pre = attrName.substr(0, sepIndex);
-            const type = attrName.substr(sepIndex + 1);
-
-            if (pre === 'on') {
-                elem.on(type, getFun(attrVal));
-                toRemoves.push(attrName);
-            } else if (pre === 'cb') {
-                elem.cb(type, getFun(attrVal));
-                toRemoves.push(attrName);
-            } else if (pre === 'bind') {
-                this.addBinder(attrVal, new ElemPropBinder(elem, type));
-                toRemoves.push(attrName);
-            //} else if (pre === 'trigger') {
-            //    this.addTrigger(type.replace(/-/g, '.'), getFun(attrVal));
-            //    toRemoves.push(attrName);
-            }
-        }
-
-        toRemoves.forEach(attrName => elem.removeAttribute(attrName));
-    }
-
-
-    addBinder(attrQuery, binder) {
-        const dataProp = parseDataProp(attrQuery);
-        if (!dataProp) {
-            return;
-        }
-        this.defineQuery(this.data, dataProp.name);
-
-        const wrap = this.getWrap(dataProp.name);
-        binder.onFilter(dataProp.filter);
-        wrap.addBinder(this.scope, binder);
-    }
-
-    get changeQueries() {
-        this._changeQueries = this._changeQueries || {};
-        return this._changeQueries;
-    }
-
-    changedRecursive(oriQuery) {
-        let query = oriQuery;
-        while(query) {
-            if (this.hasWrap(query)) {
-                this.changeQueries[query] = 1;
-                //this.getWrap(query).changed();
-            }
-
-            const pos = query.lastIndexOf('.');
-            if (pos < 0) {
-                break;
-            }
-            query = query.substr(0, pos);
-        }
-    }
-
-    startChange() {
-        if (this.isCompiling) {
-            return;
-        }
-
-        this._changeLevel = this._changeLevel || 0;
-        this._changeLevel++;
-        if (this._changeLevel > 1) {
-            return;
-        }
-
-        this._changeQueries = {};
-    }
-
-    commitChange(scope) {
-        if (this.isCompiling) {
-            return;
-        }
-
-        if (this._changeLevel <= 0) {
-            this._changeLevel = 0;
-            throw new Error('commit change failed');
-        }
-
-        this._changeLevel--;
-        if (this._changeLevel > 0) {
-            return;
-        }
-
-        if (scope) {
-            this.changedByScope(scope);
-        } else {
-            this.changed();
-        }
-    }
-
-    changedByScope(scope) {
-        if (scope) {
-            Object.keys(this.scopeWraps[scope]).forEach(key => {
-                this.scopeWraps[scope][key].changedByScope(scope);
-            });
-            this.handleChanged();
-        }
-    }
-
-    changed() {
-        Object.keys(this.wraps).forEach(key => this.wraps[key].changed());
-        this.handleChanged();
-    }
-
-    handleChanged() {
-        const handle = this.handleOnceCommitChange;
-        this.handleOnceCommitChange = null;
-        if (handle) {
-            handle();
-        }
-    }
-
-    onceCommitChange(handle) {
-        this.handleOnceCommitChange = handle;
+    parseQuery(query) {
+        const pos = query.lastIndexOf('.');
+        const preQuery = pos < 0 ? '' : query.substr(0, pos);
+        const prop = pos < 0 ? query : query.substr(pos + 1);
+        return [preQuery, prop];
     }
 }

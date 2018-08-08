@@ -22,6 +22,7 @@ class UserListView extends View {
         `;
     }
 
+    /*
     removeUser(user) {
         this.data.users.delete(user);
     }
@@ -29,6 +30,7 @@ class UserListView extends View {
     removeUserByUserId(userId) {
         this.data.users.deleteByKey(userId);
     }
+    */
 }
 
 test('bind arr delete', () => {
@@ -46,7 +48,7 @@ test('bind arr delete', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
 
-    userListView.removeUser({
+    userListView.data.users.delete({
         userId: 'id3', name: 'mike', age: 20, address: 'zj'
     });
 
@@ -55,10 +57,12 @@ test('bind arr delete', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span></div>');
 
+    /*
     userListView.removeUserByUserId('id2');
 
     expect(userListView.data.users[1]).toBe(undefined);
 
     expect(document.body.innerHTML.trim())
         .toBe('<div></div>');
+        */
 });

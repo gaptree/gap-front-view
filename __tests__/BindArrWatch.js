@@ -9,17 +9,16 @@ class UserListView extends View {
             item-key=${user => user.userId}
             item-filter=${user => user.age > 18}
         >
-            ${() => this.html`
+            ${(key) => this.html`
                 <span watch='user.name' on-click=${() => {}}>
-                ${(name, data) => this.watchAge(name, data)}
+                ${() => this.watchAge(this.data.users.get(key))}
                 </span>
             `}
         </div>
         `;
     }
 
-    watchAge(name, data) {
-        const user = data.user;
+    watchAge(user) {
         return `${user.userId} - ${user.name} - ${user.age} - ${user.address}`;
     }
 

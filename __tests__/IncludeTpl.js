@@ -4,7 +4,7 @@ class BookView extends View {
     template() {
         return this.html`
         <div>
-        <span>$${'book.title'}</span>
+        <span class="book-title">$${'book.title'}</span>
         <div class="author">
         ${this.html`
             <span>$${'book.author.name'} - $${'book.author.address'}</span>
@@ -22,7 +22,7 @@ test('include tpl', () => {
 
     bookView.update({
         book: {
-            title: 'Real Analysis,Fourth Edition',
+            title: 'Real Analysis, Fourth Edition',
             author: {
                 name: 'mike',
                 address: 'usa'
@@ -31,7 +31,10 @@ test('include tpl', () => {
     });
 
     const authorElem = document.querySelector('.author');
+    const bookTitleElem = document.querySelector('.book-title');
+
     expect(authorElem.innerHTML.trim()).toBe('<span>mike - usa</span>');
+    expect(bookTitleElem.innerHTML.trim()).toBe('Real Analysis, Fourth Edition');
 
     bookView.update({
         book: {
@@ -41,8 +44,10 @@ test('include tpl', () => {
         }
     });
 
-    expect(authorElem.innerHTML.trim()).toBe('<span>undefined - china</span>');
+    expect(authorElem.innerHTML.trim()).toBe('<span> - china</span>');
+    expect(bookTitleElem.innerHTML.trim()).toBe('');
 
     bookView.data.book.author.name = 'changed';
+    expect(bookTitleElem.innerHTML.trim()).toBe('');
     expect(authorElem.innerHTML.trim()).toBe('<span>changed - china</span>');
 });

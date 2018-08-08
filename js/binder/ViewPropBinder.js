@@ -8,7 +8,7 @@ export class ViewPropBinder extends BinderBase {
         this.prop = prop;
     }
 
-    update(inVal) {
-        this.viewBinder.updateProp(this.prop, inVal);
+    update(val) {
+        this.viewBinder.updateProp(this.prop, val);
     }
 }

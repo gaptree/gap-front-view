@@ -4,13 +4,13 @@ class UserView extends View {
     template() {
         return this.html`
         <span
-            bind-class=${{user: user => this.getClass(user)}}
+            bind-class=${this.filter({user: user => this.getClass(user)})}
         >
             $${'user.role'}
             -
-            $${{user: user => this.getSex(user)}}
+            $${this.filter({user: user => this.getSex(user)})}
             -
-            $${{'user.age': age => this.getAge(age)}}
+            $${this.filter({'user.age': age => this.getAge(age)})}
         </span>
         `;
     }
@@ -26,8 +26,13 @@ class UserView extends View {
     getSex(user) {
         if (user.sex === 1) {
             return 'male';
+        } else if (user.sex === 2) {
+            return 'female';
         }
-        return 'female';
+
+        //console.log('data.user.sex', this.data.user.sex);
+
+        throw new Error('user.sex is undefined');
     }
 
     getAge(age) {
@@ -62,5 +67,16 @@ test('bind obj filter', () => {
     });
     expect(document.body.innerHTML.trim())
         .toBe('<span class="normal"> 0 - female - old </span>');
+
+    userView.update({
+        user: {
+            role: 0,
+            age: 10,
+            sex: 2
+        }
+    });
+
+    expect(document.body.innerHTML.trim())
+        .toBe('<span class="normal"> 0 - female - young </span>');
 
 });

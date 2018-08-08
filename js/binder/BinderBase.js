@@ -1,5 +1,3 @@
-import {parseVal} from '../lib/parseVal';
-
 export class BinderBase {
     onFilter(handle) {
         this.handleFilter = handle;
@@ -7,11 +5,20 @@ export class BinderBase {
     }
 
     parseVal(inVal) {
-        const tmpVal = parseVal(inVal);
+        const val = this._toVal(inVal);
+        //console.log('BinderBase.update', val, this.handleFilter);
+
         if (this.handleFilter) {
-            return this.handleFilter(tmpVal);
+            return this.handleFilter(val);
         }
 
-        return tmpVal;
+        return val;
+    }
+
+    _toVal(inVal) {
+        if (typeof inVal === 'function') {
+            return inVal();
+        }
+        return inVal;
     }
 }

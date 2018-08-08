@@ -11,4 +11,9 @@ export class TextNodeBinder extends BinderBase {
         this.elem.replace(textNode);
         this.elem = textNode;
     }
+
+    parseVal(inVal) {
+        const val = super.parseVal(inVal);
+        return (val === undefined) ? '' : val;
+    }
 }

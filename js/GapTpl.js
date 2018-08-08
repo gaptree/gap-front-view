@@ -1,14 +1,11 @@
-import {createElem} from './lib/createElem';
-import {toFrag} from './lib/toFrag';
 import {View} from './View';
-import {
-    createNodeHolder,
-    createViewHolder,
-    createFunHolder,
-    createObjHolder,
-    createTextHolder,
-    getNode
-} from './lib/holder';
+import {createElem} from './lib/createElem';
+
+import {nodeHolder} from './holder/nodeHolder';
+import {funHolder} from './holder/funHolder';
+import {objHolder} from './holder/objHolder';
+import {viewHolder} from './holder/viewHolder';
+import {textHolder} from './holder/textHolder';
 
 export class GapTpl {
     constructor(strs, ...items) {
@@ -17,8 +14,7 @@ export class GapTpl {
         this.ctn.innerHTML = this.html(strs, ...items);
 
         this.ctn.allElem('gap-node').forEach(holder => {
-            const nodeId = holder.getAttribute('node-id');
-            const node = getNode(nodeId);
+            const node = nodeHolder.get(holder.getAttribute('node-id'));
             holder.replace(node);
         });
     }
@@ -27,67 +23,81 @@ export class GapTpl {
         if (this._nodes) {
             return this._nodes;
         }
-
         this._nodes = [];
         for (const node of this.ctn.childNodes) {
             this._nodes.push(node);
         }
         return this._nodes;
+        //return this.ctn.childNodes;
     }
 
-    get frag() {
-        return toFrag(this.nodes);
+    holdFun(fun) {
+        return funHolder.hold(fun);
     }
 
-    createViewHolder(view) {
+    holdObj(obj) {
+        return objHolder.hold(obj);
+    }
+
+    holdNode(node) {
+        return nodeHolder.hold(node);
+    }
+
+    holdView(view) {
         this.views.push(view);
-        return createViewHolder(view);
+        return viewHolder.hold(view);
+    }
+
+    holdText(text) {
+        return textHolder.hold(text);
     }
 
     remove() {
-        this.nodes.forEach(elem => elem.remove());
+        this.nodes.forEach(node => node.remove());
         this.views.forEach(view => view.remove());
+    }
+
+    parseHolderStr(item) {
+        if (!item) {
+            return '';
+        }
+        let str = '';
+        if (typeof item === 'string') {
+            str = item;
+        } else if (Array.isArray(item)) {
+            str = item.map(sub => this.parseHolderStr(sub)).join('');
+        } else if (typeof item === 'function') {
+            str = this.holdFun(item);
+        } else if (item instanceof Node) {
+            str = this.holdNode(item);
+        } else if (item instanceof View) {
+            str = this.holdView(item);
+        } else if (item instanceof GapTpl) {
+            str = item.nodes.map(sub => this.holdNode(sub)).join('');
+        } else if (item instanceof Object) {
+            str = this.holdObj(item);
+        } else {
+            throw new Error('unknown format');
+        }
+        return str.trim();
     }
 
     html(strs, ...items) {
         const raw = strs.raw;
         const arr = [];
 
-        const toStr = (item) => {
-            if (!item) {
-                return '';
-            }
-
-            let str = '';
-            if (Array.isArray(item)) {
-                str = item.map(sub => toStr(sub)).join('');
-            } else if (typeof item === 'function') {
-                str = createFunHolder(item);
-            } else if (item instanceof Node) {
-                str = createNodeHolder(item);
-            } else if (item instanceof View) {
-                str = this.createViewHolder(item);
-            } else if (item instanceof GapTpl) {
-                str = item.nodes.map(sub => createNodeHolder(sub)).join('');
-            } else if (item instanceof Object) {
-                str = createObjHolder(item);
-            } else {
-                str = item;
-            }
-            return str.trim();
-        };
-
         items.forEach((item, index) => {
             const lit = raw[index];
-            const val = toStr(item);
+            const holderStr = this.parseHolderStr(item);
 
             if (lit.endsWith('$')) {
                 arr.push(lit.slice(0, -1));
-                arr.push(createTextHolder(val));
+                arr.push(this.holdText(holderStr));
                 return;
             }
+
             arr.push(lit);
-            arr.push(val);
+            arr.push(holderStr);
         });
 
         arr.push(raw[raw.length - 1]);

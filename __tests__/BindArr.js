@@ -47,4 +47,14 @@ test('bind arr', () => {
 
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id3"> mike - 20 - zj </span><span id="id4"> tom - 20 - beijin </span></div>');
+
+    userListView.update({
+        users: [
+            {userId: 'id3', name: 'mike-changed', age: 21, address: 'zj-changed'},
+            {userId: 'id4', name: 'tom-changed', age: 21, address: 'beijin'}
+        ]
+    });
+
+    expect(document.body.innerHTML.trim())
+        .toBe('<div><span id="id3"> mike-changed - 21 - zj-changed </span><span id="id4"> tom-changed - 21 - beijin </span></div>');
 });

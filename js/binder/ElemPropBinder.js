@@ -13,7 +13,6 @@ export class ElemPropBinder extends BinderBase {
         this.elem = elem;
         this.prop = prop;
 
-        this.handler;
         if (prop === 'val' || prop === 'value') {
             this.handler = this.getValueHandler();
         } else if (prop === 'html') {
@@ -27,15 +26,13 @@ export class ElemPropBinder extends BinderBase {
         }
     }
 
-    filter(val) {
-        if (this.handleFilter) {
-            return this.handleFilter(val);
-        }
-        return val;
-    }
-
     update(val) {
         this.handler(val);
+    }
+
+    parseVal(inVal) {
+        const val = super.parseVal(inVal);
+        return (val === undefined) ? '' : val;
     }
 
     getValueHandler() {

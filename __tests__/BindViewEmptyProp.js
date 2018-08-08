@@ -6,10 +6,6 @@ class UserView extends View {
         <div class="user">$${'name'} - $${'address'}</div>
         `;
     }
-
-    setName(name) {
-        this.data.name = name;
-    }
 }
 
 class BookView extends View {
@@ -21,18 +17,11 @@ class BookView extends View {
             <gap-view
                 ref=${view => this.userView = view}
                 view=${new UserView()}
+                bind="book.author"
             ></gap-view>
             </div>
         </div>
         `;
-    }
-
-    setAuthor(author) {
-        this.userView.update(author);
-    }
-
-    setAuthorName(name) {
-        this.userView.setName(name);
     }
 }
 
@@ -47,17 +36,18 @@ test('bind view empty prop', () => {
     });
 
     const bookTitleElem = document.querySelector('.book-title');
-    const bookAuthorElem = document.querySelector('.book-author');
+    const userElem = document.querySelector('.book-author .user');
 
     expect(bookTitleElem.innerHTML.trim()).toBe('time history');
+    expect(userElem.innerHTML.trim()).toBe('-');
 
-    bookView.setAuthor({
+    bookView.data.book.author = {
         name: 'mike',
         address: 'sh'
-    });
+    };
 
-    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">mike - sh</div>');
+    expect(userElem.innerHTML.trim()).toBe('mike - sh');
 
-    bookView.setAuthorName('tom');
-    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="user">tom - sh</div>');
+    bookView.userView.data.name = 'tom';
+    expect(userElem.innerHTML.trim()).toBe('tom - sh');
 });

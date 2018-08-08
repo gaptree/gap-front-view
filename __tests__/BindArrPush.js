@@ -21,10 +21,6 @@ class UserListView extends View {
         </div>
         `;
     }
-
-    addUser(user) {
-        this.data.users.push(user);
-    }
 }
 
 test('bind arr push', () => {
@@ -42,7 +38,7 @@ test('bind arr push', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
 
-    userListView.addUser({
+    userListView.data.users.push({
         userId: 'id4',
         name: 'tom',
         age: 28,
@@ -52,7 +48,7 @@ test('bind arr push', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span><span id="id4"> tom - 28 - hz </span></div>');
 
-    userListView.addUser({
+    userListView.data.users.push({
         userId: 'id4',
         name: 'tom',
         age: 23,

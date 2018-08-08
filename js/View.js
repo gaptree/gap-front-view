@@ -1,9 +1,10 @@
-import {GapEvent} from 'gap-front-event';
-import {createElem} from './lib/createElem';
-import {toFrag} from './lib/toFrag';
-//import {deepUpdate} from './lib/deepUpdate';
-import {GapTpl} from './GapTpl';
+import {GapEvent} from './GapEvent';
+//import {GapObj} from './GapObj';
 import {GapProxy} from './GapProxy';
+import {GapTpl} from './GapTpl';
+import {filterHolder} from './holder/filterHolder';
+
+import {createElem} from './lib/createElem';
 
 let viewIndex = 1;
 
@@ -11,37 +12,97 @@ export class View {
     static get tag() { return null; }
 
     constructor(props = {}) {
-        this.props = props || {};
-        this.data = {};
-        this.event = new GapEvent();
         this.vid = 'gv' + viewIndex++;
-        this.proxy = new GapProxy(this.data);
+        this.isCompiled = false;
 
-        this.tpl = this.template();
-        if (this.tpl) {
-            this.proxy.compile(this.tpl, this.vid);
+        this.props = props || {};
+        this.event = new GapEvent();
+
+        this.proxy = new GapProxy();
+    }
+
+    get data() {
+        return this.proxy.data;
+    }
+
+    compileTpl() {
+        if (this.isCompiled) {
+            return;
+        }
+        this.proxy.compileTpl(this.tpl);
+        this.isCompiled = true;
+    }
+
+    get tpl() {
+        this._tpl = this._tpl || this._createTpl();
+        return this._tpl;
+    }
+
+    get ctn() {
+        this._ctn = this._ctn || this._createCtn();
+        return this._ctn;
+    }
+
+    get nodes() {
+        return [this.ctn];
+    }
+
+    get frag() {
+        // todo
+        return this.ctn;
+    }
+
+    remove() {
+        this.tpl.remove();
+        this.ctn.remove();
+    }
+
+    html(strs, ...items) {
+        return new GapTpl(strs, ...items);
+    }
+
+    filter(obj) {
+        return filterHolder.hold(obj);
+    }
+
+    template() {
+    }
+
+    update(data) {
+        this.compileTpl();
+        this.proxy.update(data);
+    }
+
+    appendTo(node) {
+        if (node instanceof Node) {
+            this.compileTpl();
+            node.appendChild(this.ctn);
+        }
+    }
+    
+    // event
+    on(evtName, handle) {
+        return this.event.on(evtName, handle);
+    }
+
+    trigger(evtName, ...args) {
+        return this.event.trigger(evtName, ...args);
+    }
+
+    // --- private fun
+    _createTpl() {
+        const _tpl = this.template();
+        if (!(_tpl instanceof GapTpl)) {
+            throw new Error('no template');
         }
 
-        this.ctn = this.getCtn();
-        //this.proxy.changed();
-
-        // deprecated
-        this.init();
-        this.render();
-        this.startup();
+        return _tpl;
     }
 
-    update(inData) {
-        this.proxy.updateAll(inData, this.vid);
-        //deepUpdate(this.data, inData);
-    }
-
-    getCtn() {
+    _createCtn() {
         if (this.constructor.tag) {
             const ctn = createElem(this.constructor.tag);
-            if (this.tpl) {
-                ctn.appendChild(this.tpl.frag);
-            }
+            ctn.appendChild(this.tpl.frag);
             return ctn;
         }
 
@@ -56,70 +117,4 @@ export class View {
 
         throw new Error('Error html format');
     }
-
-    get nodes() {
-        if (this._nodes) {
-            return this._nodes;
-        }
-
-        if (this.ctn) {
-            this._nodes = [this.ctn];
-            return this._nodes;
-        }
-
-        /*
-        if (this.tpl) {
-            this._nodes = this.tpl.nodes;
-            return this._nodes;
-        }
-
-        return [];
-        */
-    }
-
-
-    get frag() {
-        return toFrag(this.nodes);
-    }
-
-    remove() {
-        if (this.tpl) {
-            this.tpl.remove();
-        }
-
-        if (this.ctn) {
-            this.ctn.remove();
-        }
-    }
-
-    template() {
-        return null;
-    }
-
-    on(evtName, handle) {
-        this.event.on(evtName, handle);
-    }
-
-    trigger(evtName, ...args) {
-        this.event.trigger(evtName, ...args);
-    }
-
-    html(strs, ...items) {
-        return new GapTpl(strs, ...items);
-    }
-
-    appendTo(node) {
-        if (!(node instanceof Node)) {
-            return;
-        }
-
-        node.appendChild(this.frag);
-    }
-
-
-    // dprecated
-    init() {}
-    render() {}
-    startup() {}
-    handleUpdate() {}
 }

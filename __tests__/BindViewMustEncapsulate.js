@@ -11,6 +11,6 @@ class BookView extends View {
 
 test('view must encapsulated', () => {
     expect(() => {
-        new BookView();
+        (new BookView()).appendTo(document.body);
     }).toThrowError(/must be encapsulated/);
 });

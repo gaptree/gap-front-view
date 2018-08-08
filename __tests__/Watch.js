@@ -1,5 +1,6 @@
 import {View} from '../index';
 
+/*
 class PremiumView extends View {
     template() {
         return this.html`
@@ -9,6 +10,7 @@ class PremiumView extends View {
         `;
     }
 }
+*/
 
 class BookView extends View {
     template() {
@@ -31,6 +33,7 @@ class BookView extends View {
             return 'new author - ' + author.name;
         }
 
+        /*
         if (author.rank === 'premium') {
             return this.html`
             <gap-view
@@ -39,10 +42,11 @@ class BookView extends View {
             ></gap-view>
             `;
         }
+        */
 
         return this.html`
         <span class="normal">
-            $${'book.author.name'}
+            ${this.data.book.author.name}
         </span>
         `;
     }
@@ -72,6 +76,7 @@ test('watch', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div class="book"> <span>book title</span> <div>new author - jack</div> </div>');
 
+    /*
     bookView.setAuthor({
         rank: 'premium',
         name: 'super sum'
@@ -79,4 +84,5 @@ test('watch', () => {
 
     expect(document.body.innerHTML.trim())
         .toBe('<div class="book"> <span>book title</span> <div><span class="premium"> super sum </span></div> </div>');
+        */
 });

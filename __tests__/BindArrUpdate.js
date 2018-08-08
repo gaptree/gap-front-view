@@ -23,7 +23,7 @@ class UserListView extends View {
     }
 
     updateUser(user) {
-        this.data.users.update(user);
+        this.data.users.push(user);
     }
 }
 
@@ -49,7 +49,7 @@ test('bind arr update elem', () => {
         address: 'hz'
     });
 
-    expect(userListView.data.users[2].address).toBe('hz');
+    expect(userListView.data.users['2'].address).toBe('hz');
 
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> tom - 28 - hz </span></div>');
