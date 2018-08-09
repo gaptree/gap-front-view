@@ -14,23 +14,14 @@ export class View {
     constructor(props = {}) {
         this.vid = 'gv' + viewIndex++;
         this.isCompiled = false;
-
         this.props = props || {};
-        this.event = new GapEvent();
 
+        this.event = new GapEvent();
         this.proxy = new GapProxy();
     }
 
     get data() {
         return this.proxy.data;
-    }
-
-    compileTpl() {
-        if (this.isCompiled) {
-            return;
-        }
-        this.proxy.compileTpl(this.tpl);
-        this.isCompiled = true;
     }
 
     get tpl() {
@@ -50,6 +41,14 @@ export class View {
     get frag() {
         // todo
         return this.ctn;
+    }
+
+    compileTpl() {
+        if (this.isCompiled) {
+            return;
+        }
+        this.proxy.compileTpl(this.tpl);
+        this.isCompiled = true;
     }
 
     remove() {
