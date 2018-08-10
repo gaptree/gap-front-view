@@ -38,10 +38,12 @@ export class View {
         return [this.ctn];
     }
 
+    /*
     get frag() {
         // todo
         return this.ctn;
     }
+    */
 
     compileTpl() {
         if (this.isCompiled) {
@@ -101,7 +103,8 @@ export class View {
     _createCtn() {
         if (this.constructor.tag) {
             const ctn = createElem(this.constructor.tag);
-            ctn.appendChild(this.tpl.frag);
+            this.tpl.nodes.forEach(node => ctn.appendChild(node));
+            //ctn.appendChild(this.tpl.frag);
             return ctn;
         }
 

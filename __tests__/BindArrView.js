@@ -24,10 +24,10 @@ class UserListView extends View {
             item-filter=${user => user.age > 18}
         >
             ${() => this.html`
-                <gap-view
-                    view=${new UserView()}
-                    bind="user"
-                />
+            <gap-view
+                view=${new UserView()}
+                bind="user"
+            ></gap-view>
             `}
         </div>
         `;
