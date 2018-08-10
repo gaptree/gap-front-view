@@ -78,7 +78,7 @@ export class GapProxy {
             view.compileTpl();
 
             this.views.push(view);
-            opt.ctn.replace(view.ctn);
+            //opt.ctn.replace(view.ctn);
             if (opt.ref) {
                 opt.ref(view);
             }

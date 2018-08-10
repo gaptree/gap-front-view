@@ -47,8 +47,6 @@ test('bind arr view update', () => {
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id2"> rose - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
 
-    /*
-     * todo
     userListView.update({
         users: [
             {userId: 'id1', name: 'name 1', age: 21, address: 'sh'},
@@ -58,5 +56,4 @@ test('bind arr view update', () => {
 
     expect(document.body.innerHTML.trim())
         .toBe('<div><span id="id1"> name 1 - 21 - sh </span><span id="id3"> mike - 20 - zj </span></div>');
-        */
 });

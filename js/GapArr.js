@@ -291,12 +291,9 @@ export class GapArr extends GapObj {
             }
         });
 
-        /*
-         * todo
         Object.keys(this._arrBinders).forEach(arrBinderId => {
             const arrBinder = this._arrBinders[arrBinderId];
             arrBinder.sort(currItems);
         });
-        */
     }
 }

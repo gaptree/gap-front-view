@@ -23,7 +23,13 @@ export class GapCompiler {
     }
 
     compileTpl(tpl) {
-        tpl.nodes.forEach(node => this.compileNode(node));
+        for (let index in tpl.nodes) {
+            const compiled = this.compileNode(tpl.nodes[index]);
+            if (compiled) {
+                tpl.nodes[index] = compiled;
+            }
+        }
+        //tpl.nodes.forEach(node => this.compileNode(node));
     }
 
     compileNode(node) {
@@ -36,17 +42,19 @@ export class GapCompiler {
         }
         node._compiled = true;
 
+        let compiled;
         switch(node.tagName.toLowerCase()) {
         case viewHolder.tagName:
-            this.compileGapView(node);
+            compiled = this.compileGapView(node);
             break;
         case textHolder.tagName: 
-            this.compileGapText(node);
+            compiled = this.compileGapText(node);
             break;
         default:
-            this.compileElem(node);
+            compiled = this.compileElem(node);
             this.compileNodeCollection(node.childNodes);
         }
+        return compiled;
     }
 
     compileNodeCollection(nodeCollection) {
@@ -63,9 +71,9 @@ export class GapCompiler {
      * ></gap-view>
      **/
     compileGapView(node) {
+        const view = viewHolder.get(node.getAttribute('view'));
         const viewOpt = {
-            view: viewHolder.get(node.getAttribute('view')),
-            ctn: node,
+            view: view,
             ons: []
         };
 
@@ -128,6 +136,9 @@ export class GapCompiler {
         viewOpt.bindMulti = bindMulti;
 
         this.viewOpts.push(viewOpt);
+        node.replace(view.ctn);
+
+        return view.ctn;
     }
 
     compileGapText(node) {

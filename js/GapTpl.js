@@ -25,7 +25,12 @@ export class GapTpl {
         }
         this._nodes = [];
         for (const node of this.ctn.childNodes) {
-            this._nodes.push(node);
+            if (node.tagName === viewHolder.tagName) {
+                const view = viewHolder.get(node.getAttribute('view'));
+                this._nodes.push(view.ctn);
+            } else {
+                this._nodes.push(node);
+            }
         }
         return this._nodes;
         //return this.ctn.childNodes;
