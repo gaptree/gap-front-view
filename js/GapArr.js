@@ -116,7 +116,7 @@ export class GapArr extends GapObj {
 
         this._prepareArr();
 
-        oriArr
+        const filtered = oriArr
             .filter(dptId => {
                 if (dptId) {
                     return true;
@@ -124,11 +124,15 @@ export class GapArr extends GapObj {
                 return false;
             })
             .map(dptId => this._getDpt(dptId).getVal()) // to check
-            .filter(handler).forEach(item => {
-                this._push(item);
-            });
+            .filter(handler);
+        
+        filtered.forEach(item => {
+            this._push(item);
+        });
 
         this._clearPrevAndSort();
+
+        return filtered;
     }
 
 

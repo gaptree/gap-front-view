@@ -45,12 +45,12 @@ export class GapProxy {
             });
         });
 
-        Object.keys(compiler.arrs).forEach(query => {
+        Object.keys(compiler.arrOpts).forEach(query => {
             const [preQuery, prop] = this.parseQuery(query);
             const preObj = this.queryGapObj(preQuery);
             const gapArr = new GapArr();
             preObj.addChild(prop, gapArr);
-            compiler.arrs[query].forEach(arrBinder => {
+            compiler.arrOpts[query].forEach(arrBinder => {
                 gapArr.addArrBinder(arrBinder);
             });
         });

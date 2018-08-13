@@ -4,8 +4,6 @@ import {objHolder} from './holder/objHolder';
 import {viewHolder} from './holder/viewHolder';
 
 import {ElemPropBinder} from './binder/ElemPropBinder';
-//import {ViewBinder} from './binder/ViewBinder';
-//import {ViewPropBinder} from './binder/ViewPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
 import {ArrBinder} from './binder/ArrBinder';
 import {Watcher} from './Watcher';
@@ -13,7 +11,7 @@ import {Watcher} from './Watcher';
 export class GapCompiler {
     constructor(tpl) {
         this.binders = {};
-        this.arrs = {};
+        this.arrOpts = {};
         this.watchers = {};
 
         this.viewOpts = [];
@@ -24,15 +22,14 @@ export class GapCompiler {
 
     compileTpl(tpl) {
         for (let index in tpl.nodes) {
-            const compiled = this.compileNode(tpl.nodes[index]);
+            const compiled = this._compileNode(tpl.nodes[index]);
             if (compiled) {
                 tpl.nodes[index] = compiled;
             }
         }
-        //tpl.nodes.forEach(node => this.compileNode(node));
     }
 
-    compileNode(node) {
+    _compileNode(node) {
         if (!node.attributes) {
             return;
         }
@@ -45,21 +42,21 @@ export class GapCompiler {
         let compiled;
         switch(node.tagName.toLowerCase()) {
         case viewHolder.tagName:
-            compiled = this.compileGapView(node);
+            compiled = this._compileGapView(node);
             break;
         case textHolder.tagName: 
-            compiled = this.compileGapText(node);
+            compiled = this._compileGapText(node);
             break;
         default:
-            compiled = this.compileElem(node);
-            this.compileNodeCollection(node.childNodes);
+            compiled = this._compileElem(node);
+            this._compileNodeCollection(node.childNodes);
         }
         return compiled;
     }
 
-    compileNodeCollection(nodeCollection) {
+    _compileNodeCollection(nodeCollection) {
         for (const node of nodeCollection) {
-            this.compileNode(node);
+            this._compileNode(node);
         }
     }
 
@@ -70,24 +67,21 @@ export class GapCompiler {
      *  bind-var1_part1-sub_var_part2='currentDataVar'
      * ></gap-view>
      **/
-    compileGapView(node) {
+    _compileGapView(node) {
         const view = viewHolder.get(node.getAttribute('view'));
         const viewOpt = {
             view: view,
+            bindMulti: {},
+            bind: null,
             ons: []
         };
 
-        const bindMulti = {};
-
-        // todo
-        // too much actions in loop
         for (const attr of node.attributes) {
             const attrName = attr.name;
             const attrVal = attr.value;
 
             if (attrName === 'ref') {
                 viewOpt.ref = funHolder.get(attrVal);
-                //funHolder.get(attrVal)(this.view);
                 continue;
             }
 
@@ -101,39 +95,25 @@ export class GapCompiler {
                 continue;
             }
 
-            /*
-             * todo
-            if (attrName === 'prop') {
-                viewOpt.prop = objHolder.get(attrVal);
-            }
-            */
-
-
-            const sepIndex = attrName.indexOf('-');
-            if (sepIndex <= 0) {
+            const [pre, type] = this._toPreAndType(attrName);
+            if (!pre) {
                 continue;
             }
-            const pre = attrName.substr(0, sepIndex);
-            const type = attrName.substr(sepIndex + 1);
 
             if (pre === 'on') {
                 viewOpt.ons.push([type, funHolder.get(attrVal)]);
-                //this.view.on(type, funHolder.get(attrVal));
                 continue;
             }
 
             if (pre === 'bind') {
-                bindMulti[this.attrNameToVarName(type)] = attrVal;
+                viewOpt.bindMulti[this._attrNameToVarName(type)] = attrVal;
                 continue;
-                //console.log('bind', type, attrVal);
             }
         }
 
-        if (viewOpt.bind && viewOpt.bindMulti) {
+        if (viewOpt.bind && Object.keys(viewOpt.bindMulti).length > 0) {
             throw new Error('view.bind view.bindMulti cannot exist at same time');
         }
-        Object.assign(bindMulti, viewOpt.bindMulti);
-        viewOpt.bindMulti = bindMulti;
 
         this.viewOpts.push(viewOpt);
         node.replace(view.ctn);
@@ -141,11 +121,11 @@ export class GapCompiler {
         return view.ctn;
     }
 
-    compileGapText(node) {
-        this.addBinder(node.getAttribute('bind'), new TextNodeBinder(node));
+    _compileGapText(node) {
+        this._addBinder(node.getAttribute('bind'), new TextNodeBinder(node));
     }
 
-    compileElem(elem) {
+    _compileElem(elem) {
         const toRemoves = [];
 
         for (const attr of elem.attributes) {
@@ -153,7 +133,7 @@ export class GapCompiler {
             const attrVal = attr.value;
 
             if (attrName === 'arr' || attrName === 'array') {
-                this.addArr(attrVal, new ArrBinder(elem));
+                this._addArrOpt(attrVal, new ArrBinder(elem));
                 toRemoves.push('arr', 'array', 'type', 'filter', 'item-key', 'item-filter', 'item-as');
                 continue;
             }
@@ -165,19 +145,15 @@ export class GapCompiler {
             }
 
             if (attrName === 'watch') {
-                this.addWatcher(attrVal, new Watcher(elem));
+                this._addWatcher(attrVal, new Watcher(elem));
                 toRemoves.push(attrName);
                 continue;
             }
 
-            const sepIndex = attrName.indexOf('-');
-
-            if (sepIndex <= 0) {
+            const [pre, type] = this._toPreAndType(attrName);
+            if (!pre) {
                 continue;
             }
-
-            const pre = attrName.substr(0, sepIndex);
-            const type = attrName.substr(sepIndex + 1);
 
             if (pre === 'on') {
                 elem.on(type, funHolder.get(attrVal));
@@ -186,12 +162,60 @@ export class GapCompiler {
                 elem.cb(type, funHolder.get(attrVal));
                 toRemoves.push(attrName);
             } else if (pre === 'bind') {
-                this.addBinder(attrVal, new ElemPropBinder(elem, type));
+                this._addBinder(attrVal, new ElemPropBinder(elem, type));
                 toRemoves.push(attrName);
             }
         }
 
         toRemoves.forEach(attrName => elem.removeAttribute(attrName));
+    }
+
+    _addArrOpt(query, binder) {
+        if (!this.arrOpts[query]) {
+            this.arrOpts[query] = [];
+        }
+        this.arrOpts[query].push(binder);
+    }
+
+    _addWatcher(query, watcher) {
+        if (!this.watchers[query]) {
+            this.watchers[query] = [];
+        }
+        this.watchers[query].push(watcher);
+    }
+
+    /**
+     * var1_part11_part12---var2_part21__---__part22
+     * var1Part11Part12.var2Part21.Part22
+     */
+    _attrNameToVarName(input) {
+        return (input + '')
+            .toLowerCase()
+            .replace(/_+(.)/g, (matched, p1) => p1.toUpperCase())
+            .replace(/-+/g, '.')
+            .trim();
+    }
+
+    _toPreAndType(attrName) {
+        const sepIndex = attrName.indexOf('-');
+        if (sepIndex <= 0) {
+            return [null, null];
+        }
+        const pre = attrName.substr(0, sepIndex);
+        const type = attrName.substr(sepIndex + 1);
+        return [pre, type];
+    }
+
+    _addBinder(query, binder) {
+        const varObj = this._toVarObj(query);
+
+        if (!this.binders[varObj.name]) {
+            this.binders[varObj.name] = [];
+        }
+        this.binders[varObj.name].push({
+            filter: varObj.filter,
+            binder: binder
+        });
     }
 
     _toVarObj(input) {
@@ -204,45 +228,5 @@ export class GapCompiler {
             && filterStr.indexOf('$$') === 0
             && funHolder.get(filterStr);
         return {name, filter};
-    }
-
-    addBinder(query, binder) {
-        const varObj = this._toVarObj(query);
-
-        if (!this.binders[varObj.name]) {
-            this.binders[varObj.name] = [];
-        }
-        this.binders[varObj.name].push({
-            filter: varObj.filter,
-            binder: binder
-        });
-        //this.proxy.addBinder(query, binder);
-    }
-
-    addArr(query, binder) {
-        if (!this.arrs[query]) {
-            this.arrs[query] = [];
-        }
-        this.arrs[query].push(binder);
-    }
-
-    addWatcher(query, watcher) {
-        if (!this.watchers[query]) {
-            this.watchers[query] = [];
-        }
-        this.watchers[query].push(watcher);
-        //this.proxy.addWatcher(query, watcher);
-    }
-
-    /**
-     * var1_part11_part12---var2_part21__---__part22
-     * var1Part11Part12.var2Part21.Part22
-     */
-    attrNameToVarName(input) {
-        return (input + '')
-            .toLowerCase()
-            .replace(/_+(.)/g, (matched, p1) => p1.toUpperCase())
-            .replace(/-+/g, '.')
-            .trim();
     }
 }
