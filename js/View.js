@@ -39,13 +39,6 @@ export class View {
         return [this.ctn];
     }
 
-    /*
-    get frag() {
-        // todo
-        return this.ctn;
-    }
-    */
-
     bindTpl() {
         if (this._isBinded) {
             return;
@@ -63,6 +56,7 @@ export class View {
         return new GapTpl(strs, ...items);
     }
 
+    // todo => holdFilter
     filter(obj) {
         return filterHolder.hold(obj);
     }
