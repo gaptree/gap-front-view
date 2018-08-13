@@ -38,50 +38,10 @@ export class GapProxy {
 
     bindTpl(tpl) {
         const compiler = new GapCompiler(tpl);
-
         this._bindHtml(compiler.htmlBinders);
-
-        Object.keys(compiler.arrOpts).forEach(query => {
-            const [preQuery, prop] = this.parseQuery(query);
-            const preObj = this.queryGapObj(preQuery);
-            const gapArr = new GapArr();
-            preObj.addChild(prop, gapArr);
-            compiler.arrOpts[query].forEach(arrBinder => {
-                gapArr.addArrBinder(arrBinder);
-            });
-        });
-
-        Object.keys(compiler.watchers).forEach(query => {
-            const dpt = this.queryDpt(query);
-            compiler.watchers[query].forEach(watcher => {
-                dpt.addWatcher(watcher);
-            });
-        });
-
-        compiler.viewOpts.forEach(opt => {
-            const view = opt.view;
-            if (opt.bind) {
-                view.proxy.data = this.queryGapObj(opt.bind);
-            } else if (opt.bindMulti) {
-                Object.keys(opt.bindMulti).forEach(dstQuery => {
-                    const srcQuery = opt.bindMulti[dstQuery];
-                    const [dstPreQuery, dstProp] = this.parseQuery(dstQuery);
-                    const srcDpt = this.queryDpt(srcQuery);
-                    view.proxy.queryGapObj(dstPreQuery).appendDpt(dstProp, srcDpt);
-                });
-            }
-
-            view.bindTpl();
-
-            this.views.push(view);
-            //opt.ctn.replace(view.ctn);
-            if (opt.ref) {
-                opt.ref(view);
-            }
-            opt.ons.forEach(item => {
-                view.on(item[0], item[1]);
-            });
-        });
+        this._bindArr(compiler.arrOpts);
+        this._bindWatcher(compiler.watchers);
+        this._bindView(compiler.viewOpts);
 
         console.log('bindTpl', Object.keys(this.dptQueries));
     }
@@ -90,7 +50,7 @@ export class GapProxy {
         if (query === '') {
             return this.data;
         }
-        const [preQuery, prop] = this.parseQuery(query);
+        const [preQuery, prop] = this._parseQuery(query);
         const gapObj = this.queryGapObj(preQuery);
         if (!(gapObj[prop] instanceof GapObj)) {
             gapObj.addChild(prop, new GapObj());
@@ -104,7 +64,7 @@ export class GapProxy {
             return this.dptQueries[query];
         }
 
-        const [preQuery, prop] = this.parseQuery(query);
+        const [preQuery, prop] = this._parseQuery(query);
         const gapObj = this.queryGapObj(preQuery);
         const dpt = gapObj.fetchDpt(prop);
         this.dptQueries[query] = dpt;
@@ -112,7 +72,7 @@ export class GapProxy {
         return dpt;
     }
 
-    parseQuery(query) {
+    _parseQuery(query) {
         const pos = query.lastIndexOf('.');
         const preQuery = pos < 0 ? '' : query.substr(0, pos);
         const prop = pos < 0 ? query : query.substr(pos + 1);
@@ -124,6 +84,54 @@ export class GapProxy {
             const dpt = this.queryDpt(query);
             htmlBinders[query].forEach(item => {
                 dpt.addHtmlBinder(item.htmlBinder, item.filter);
+            });
+        });
+    }
+
+    _bindArr(arrOpts) {
+        Object.keys(arrOpts).forEach(query => {
+            const [preQuery, prop] = this._parseQuery(query);
+            const preObj = this.queryGapObj(preQuery);
+            const gapArr = new GapArr();
+            preObj.addChild(prop, gapArr);
+            arrOpts[query].forEach(arrBinder => {
+                gapArr.addArrBinder(arrBinder);
+            });
+        });
+    }
+
+    _bindWatcher(watchers) {
+        Object.keys(watchers).forEach(query => {
+            const dpt = this.queryDpt(query);
+            watchers[query].forEach(watcher => {
+                dpt.addWatcher(watcher);
+            });
+        });
+    }
+
+    _bindView(viewOpts) {
+        viewOpts.forEach(opt => {
+            // todo
+            const view = opt.view;
+            if (opt.bind) {
+                view.proxy.data = this.queryGapObj(opt.bind);
+            } else if (opt.bindMulti) {
+                Object.keys(opt.bindMulti).forEach(dstQuery => {
+                    const srcQuery = opt.bindMulti[dstQuery];
+                    const [dstPreQuery, dstProp] = this._parseQuery(dstQuery);
+                    const srcDpt = this.queryDpt(srcQuery);
+                    view.proxy.queryGapObj(dstPreQuery).appendDpt(dstProp, srcDpt);
+                });
+            }
+
+            view.bindTpl();
+
+            this.views.push(view);
+            if (opt.ref) {
+                opt.ref(view);
+            }
+            opt.ons.forEach(item => {
+                view.on(item[0], item[1]);
             });
         });
     }
