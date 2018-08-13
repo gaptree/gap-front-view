@@ -13,8 +13,9 @@ export class View {
 
     constructor(props = {}) {
         this.vid = 'gv' + viewIndex++;
-        this.isBinded = false;
         this.props = props || {};
+
+        this._isBinded = false;
 
         this.event = new GapEvent();
         this.proxy = new GapProxy();
@@ -46,11 +47,11 @@ export class View {
     */
 
     bindTpl() {
-        if (this.isBinded) {
+        if (this._isBinded) {
             return;
         }
         this.proxy.bindTpl(this.tpl);
-        this.isBinded = true;
+        this._isBinded = true;
     }
 
     remove() {
