@@ -85,6 +85,7 @@ export class GapArr extends GapObj {
         const dpt = this._getDpt(dptId);
         const item = dpt.getVal();
         this.delete(item);
+        return item;
     }
 
     shift() {
@@ -92,6 +93,7 @@ export class GapArr extends GapObj {
         const dpt = this._getDpt(dptId);
         const item = dpt.getVal();
         this.delete(item);
+        return item;
     }
 
     unshift(item) {
