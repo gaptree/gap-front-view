@@ -36,7 +36,7 @@ export class GapProxy {
         this.data.update(data);
     }
 
-    compileTpl(tpl) {
+    bindTpl(tpl) {
         const compiler = new GapCompiler(tpl);
         Object.keys(compiler.binders).forEach(query => {
             const dpt = this.queryDpt(query);
@@ -75,7 +75,7 @@ export class GapProxy {
                 });
             }
 
-            view.compileTpl();
+            view.bindTpl();
 
             this.views.push(view);
             //opt.ctn.replace(view.ctn);
@@ -87,7 +87,7 @@ export class GapProxy {
             });
         });
 
-        console.log('compileTpl', Object.keys(this.dptQueries));
+        console.log('bindTpl', Object.keys(this.dptQueries));
     }
 
     queryGapObj(query) {

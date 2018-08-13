@@ -180,7 +180,7 @@ export class GapArr extends GapObj {
                 const itemAs = arrBinder.itemAs;
 
                 subProxy.data.appendDpt(itemAs, currentDpt);
-                subProxy.compileTpl(tpl);
+                subProxy.bindTpl(tpl);
 
             }
         });

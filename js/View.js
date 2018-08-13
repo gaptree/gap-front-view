@@ -13,7 +13,7 @@ export class View {
 
     constructor(props = {}) {
         this.vid = 'gv' + viewIndex++;
-        this.isCompiled = false;
+        this.isBinded = false;
         this.props = props || {};
 
         this.event = new GapEvent();
@@ -45,12 +45,12 @@ export class View {
     }
     */
 
-    compileTpl() {
-        if (this.isCompiled) {
+    bindTpl() {
+        if (this.isBinded) {
             return;
         }
-        this.proxy.compileTpl(this.tpl);
-        this.isCompiled = true;
+        this.proxy.bindTpl(this.tpl);
+        this.isBinded = true;
     }
 
     remove() {
@@ -70,13 +70,13 @@ export class View {
     }
 
     update(data) {
-        this.compileTpl();
+        this.bindTpl();
         this.proxy.update(data);
     }
 
     appendTo(node) {
         if (node instanceof Node) {
-            this.compileTpl();
+            this.bindTpl();
             node.appendChild(this.ctn);
         }
     }
