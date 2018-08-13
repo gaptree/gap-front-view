@@ -80,6 +80,11 @@ export class View {
             node.appendChild(this.ctn);
         }
     }
+
+    getBindedCtn() {
+        this.bindTpl();
+        return this.ctn;
+    }
     
     // event
     on(evtName, handle) {
