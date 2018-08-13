@@ -38,12 +38,8 @@ export class GapProxy {
 
     bindTpl(tpl) {
         const compiler = new GapCompiler(tpl);
-        Object.keys(compiler.binders).forEach(query => {
-            const dpt = this.queryDpt(query);
-            compiler.binders[query].forEach(item => {
-                dpt.addBinder(item.binder, item.filter);
-            });
-        });
+
+        this._bindHtml(compiler.htmlBinders);
 
         Object.keys(compiler.arrOpts).forEach(query => {
             const [preQuery, prop] = this.parseQuery(query);
@@ -121,5 +117,14 @@ export class GapProxy {
         const preQuery = pos < 0 ? '' : query.substr(0, pos);
         const prop = pos < 0 ? query : query.substr(pos + 1);
         return [preQuery, prop];
+    }
+
+    _bindHtml(htmlBinders) {
+        Object.keys(htmlBinders).forEach(query => {
+            const dpt = this.queryDpt(query);
+            htmlBinders[query].forEach(item => {
+                dpt.addHtmlBinder(item.htmlBinder, item.filter);
+            });
+        });
     }
 }

@@ -10,7 +10,7 @@ export class GapDpt {
         this.currentVal;
         this._isChanged = false;
 
-        this.binders = [];
+        this.htmlBinders = [];
         this.watchers = [];
     }
 
@@ -71,11 +71,11 @@ export class GapDpt {
         };
     }
 
-    addBinder(binder, filter) {
+    addHtmlBinder(htmlBinder, filter) {
         if (filter) {
-            binder.onFilter(filter);
+            htmlBinder.onFilter(filter);
         }
-        this.binders.push(binder);
+        this.htmlBinders.push(htmlBinder);
     }
 
     addWatcher(watcher) {
@@ -84,8 +84,8 @@ export class GapDpt {
 
     commitChanging() {
 
-        if (this.binders.length > 0) {
-            this.binders.forEach(binder => binder.update(this.currentVal));
+        if (this.htmlBinders.length > 0) {
+            this.htmlBinders.forEach(binder => binder.update(this.currentVal));
         }
         if (this.watchers.length > 0) {
             this.watchers.forEach(watcher => watcher.update(this.currentVal));
@@ -98,7 +98,7 @@ export class GapDpt {
 
     logCommitChanging() {
         const flags = [];
-        if (this.binders.length > 0) {
+        if (this.htmlBinders.length > 0) {
             flags.push('binder');
         }
         if (this.watchers.length > 0) {

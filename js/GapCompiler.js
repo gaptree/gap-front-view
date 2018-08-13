@@ -10,7 +10,7 @@ import {Watcher} from './Watcher';
 
 export class GapCompiler {
     constructor(tpl) {
-        this.binders = {};
+        this.htmlBinders = {};
         this.arrOpts = {};
         this.watchers = {};
 
@@ -122,7 +122,7 @@ export class GapCompiler {
     }
 
     _compileGapText(node) {
-        this._addBinder(node.getAttribute('bind'), new TextNodeBinder(node));
+        this._addHtmlBinder(node.getAttribute('bind'), new TextNodeBinder(node));
     }
 
     _compileElem(elem) {
@@ -162,7 +162,7 @@ export class GapCompiler {
                 elem.cb(type, funHolder.get(attrVal));
                 toRemoves.push(attrName);
             } else if (pre === 'bind') {
-                this._addBinder(attrVal, new ElemPropBinder(elem, type));
+                this._addHtmlBinder(attrVal, new ElemPropBinder(elem, type));
                 toRemoves.push(attrName);
             }
         }
@@ -206,15 +206,15 @@ export class GapCompiler {
         return [pre, type];
     }
 
-    _addBinder(query, binder) {
+    _addHtmlBinder(query, htmlBinder) {
         const varObj = this._toVarObj(query);
 
-        if (!this.binders[varObj.name]) {
-            this.binders[varObj.name] = [];
+        if (!this.htmlBinders[varObj.name]) {
+            this.htmlBinders[varObj.name] = [];
         }
-        this.binders[varObj.name].push({
+        this.htmlBinders[varObj.name].push({
             filter: varObj.filter,
-            binder: binder
+            htmlBinder: htmlBinder
         });
     }
 
