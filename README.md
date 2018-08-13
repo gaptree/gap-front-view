@@ -6,9 +6,40 @@
 yarn add gap-front-view
 ```
 
-## Usage
+## Quik Start
 
-### Example 1
+### Bind HtmlElement's propertes and attributes
+
+```javascript
+import {View} from 'gap-front-view';
+
+class UserView extends Veiw {
+    template() {
+        return this.html`
+            <form action="javascript:;">
+                <input
+                    name="userId"
+                    bind-value="userId"
+                    bind-id="userId"
+                >
+                <input
+                    name="name"
+                    bind-value="name"
+                >
+            </form>
+        `;
+    }
+}
+
+const userView = new UserView();
+
+userView.update({
+    userId: 'userId',
+    name: 'Mike'
+})
+```
+
+### Bind text
 
 ```javascript
 import {View} from 'gap-front-view';
@@ -16,220 +47,215 @@ import {View} from 'gap-front-view';
 class UserView extends View {
     template() {
         return this.html`
-        <form action="javascript:;" on-submit=${(form, e) => this.onSubmit(form, e)}>
-            <input
-                name="userId"
-                bind-value="userId"
-                bind-id="userId"
-                on-change=${(input) => this.showUserId(input.value)}>
-            <input
-                name="name"
-                bind-value="name"
-                cb-change=${(input) => this.showName(input.value)}>
-            <button>
-                submit
-            </button>
-        </form>
-        <div id="res">
-            $${'userId'}
-            -
-            $${'name'}
+        <div>
+            $${'user.name'} - $${'user.address'}
         </div>
         `;
     }
-
-    onSubmit(form, e) {
-        console.log(form);
-        console.log(e);
-    }
-
-    showUserId(userId) {
-        console.log(userId);
-    }
-
-    showName(name) {
-        console.log(name);
-    }
 }
+
+const userView = new UserView();
+userView.update({
+    user: {
+        name: 'tom',
+        address: 'china'
+    }
+})
 ```
 
-```javascript
-const userView = new UserView([
-    userId: 'id1',
-    name: 'Mike'
-]);
-
-userView.appendTo(document.body);
-```
-
-Expected Html
-
-```html
- <form action="javascript:;">
-    <input name="userId" value="id1" id="id1">
-    <input name="name" value="Mike">
-    <button>submit</button>
-</form>
-<div id="res"> id1 - Mike </div>
-```
-
-```javascript
-userView.update([
-    userId: 'id2',
-    name: 'Tom'
-])
-```
-
-Expected Html
-
-```html
- <form action="javascript:;">
-    <input name="userId" value="id2" id="id2">
-    <input name="name" value="Tom">
-    <button>submit</button>
-</form>
-<div id="res"> id2 - Tom </div>
-```
-
-### Example 2
+### Include sub template
 
 ```javascript
 import {View} from 'gap-front-view';
 
+class BookView extends View {
+    template() {
+        return this.html`
+        <div>
+            <span class="book-title">$${'book.title'}</span>
+            <div class="book-author">
+            ${this.getAuthorTpl()}
+            </div>
+        </div>
+        `;
+    }
+
+    getAuthorTpl() {
+        return this.html`
+        <span>$${'book.author.name'} - $${'book.author.address'}</span>
+        `;
+    }
+}
+
+const bookView = new BookView();
+bookView.update({
+    book: {
+        title: 'Real Analysis, Fourth Edition',
+        author: {
+            name: 'mike',
+            address: 'usa'
+        }
+    }
+});
+```
+
+### Include sub view
+
+Bind one property of current data
+
+```javascript
+class UserView extends View {
+    template() {
+        return this.html`
+        <div class="user-view">$${'name'} - $${'address'}</div>
+        `;
+    }
+}
+
+class BookView extends View {
+    template() {
+        return this.html`
+        <div>
+            <span class="book-title">$${'book.title'}</span>
+            <div class="book-author">
+            <gap-view
+                view=${new UserView()}
+                bind="book.author"
+            ></gap-view>
+            <div class="author">
+                $${'book.author.name'} - $${'book.author.address'}
+            </div>
+            </div>
+        </div>
+        `;
+    }
+}
+
+const bookView = new BookView();
+bookView.appendTo(document.body);
+
+bookView.update({
+    book: {
+        title: 'time history',
+        author: {
+            name: 'jack',
+            address: 'yk'
+        }
+    }
+});
+```
+
+Bind multi properties of current data
+
+```javascript
+class CoverView extends View {
+    template() {
+        return this.html`
+        <div class="cover">
+            $${'title'} - $${'author.name'} - $${'author.address'}
+        </div>
+        `;
+    }
+}
+
+class BookView extends View {
+    template() {
+        return this.html`
+        <div>
+            <span class="book-title">$${'book.title'}</span>
+            <div class="book-author">
+            <gap-view
+                ref=${view => this.coverView = view}
+                view=${new CoverView()}
+                bind-multi=${{
+                    title: 'book.title',
+                    'author.name': 'book.author.name',
+                    'author.address': 'book.author.address'
+                }}
+            ></gap-view>
+            </div>
+        </div>
+        `;
+    }
+}
+```
+
+### Handle array
+
+```javascript
 class UserListView extends View {
     template() {
         return this.html`
-        <div id="user-list" bind-arr="users" arr-key=${user => user.userId}>
+        <div
+            arr="users"
+            item-as="user"
+            item-key=${user => user.name}
+        >
             ${() => this.html`
-                <span bind-id="userId">
-                    $${'name'}
+                <span bind-id="user.userId">
+                    $${'user.name'}
+                    -
+                    $${'user.age'}
+                    -
+                    $${'user.address'}
                 </span>
             `}
         </div>
         `;
     }
 }
-```
 
-```javascript
-const userListView = new UserListView({
-    users: [
-        {
-            userId: 'userId1',
-            name: 'Mike'
-        },
-        {
-            userId: 'userid2',
-            name: 'Tom'
-        }
-    ]
-});
-userListView.appendTo(document.body);
-```
-
-Expected Html
-
-```html
-<div id="user-list">
-    <span id="userId1">Mike</span>
-    <span id="userid2">Tom</span>
-</div>
-```
-
-```javascript
+const userListView = new UserListView();
 userListView.update({
     users: [
-        {
-            userId: 'userId1',
-            name: 'Mike changed'
-        },
-        {
-            userId: 'userId3',
-            name: 'Rose'
-        }
+        {userId: 'id1', name: 'jack', age: 10, address: 'sh'},
+        {userId: 'id2', name: 'rose', age: 21, address: 'sh'},
+        {userId: 'id3', name: 'mike', age: 20, address: 'zj'}
     ]
 });
+
+userListView.data.users.push({userId: 'id4', name: '', ...});
+userListView.data.users.pop();
+
+// todo
+// userListView.data.users.unshift({userId: 'id4', name: '', ...});
+
+userListView.data.users.shift();
+userListView.data.users.delete({userId: 'id3', name: '' ...});
+userListView.data.users.filter(user => user.age > 18);
 ```
 
-Expected Html
-
-```html
-<div id="user-list">
-    <span id="userId1">Mike changed</span>
-    <span id="userid3">Rose</span>
-</div>
-```
+### Use props to transfor data
 
 ```javascript
-userListView.arrPush('users', {
-    userId: 'userId4',
-    name: 'Jack'
-});
-```
-
-Expected Html
-
-```html
-<div id="user-list">
-    <span id="userId1">Mike changed</span>
-    <span id="userid3">Rose</span>
-    <span id="userid4">Jack</span>
-</div>
-```
-
-```javascript
-userListView.arrPop('users');
-```
-
-Expected Html
-
-```html
-<div id="user-list">
-    <span id="userId1">Mike changed</span>
-    <span id="userid3">Rose</span>
-</div>
-```
-
-```javascript
-userListView.arrPush('users', {
-    userId: 'userId6',
-    name: 'cat'
-});
-
-userListView.arrPush('users', {
-    userId: 'userId7',
-    name: 'dog'
-});
-
-userListView.arrFilter('users', user => user.name.indexOf('dog') >= 0);
-```
-
-```html
-<div id="user-list">
-    <span id="userId7">dog</span>
-</div>
-```
-
-```javascript
-import {View} from 'gap-front-view';
-
 class UserView extends View {
-    template() {
-        return this.html`
-        <span bind-id="userId">
-            $${'name'}
-        </span>
-        `;
+    construct(props) {
+        super(props);
+        // ...
+        // coding here
     }
-}
 
-class UserListView extends View {
     template() {
         return this.html`
-        <div id="user-list" bind-arr="users" arr-key=${user => user.userId}>
-            ${(user) => new UserView(user)}
+        <div class="${this.props.class}">
+        $${'user.name'} - $${'user.address'}
         </div>
         `;
     }
 }
+
+const userView = new UserView({class: 'primary'});
+userView.update({
+    user: {
+        name: 'rose',
+        address: 'usa'
+    }
+})
 ```
+
+## todo
+
+Implement feature like 'computed'
+
+- <https://mobx.js.org/refguide/computed-decorator.html#-computed>
+- <https://vuejs.org/v2/guide/computed.html>
