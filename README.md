@@ -260,6 +260,12 @@ userView.update({
 - <https://mobx.js.org/refguide/computed-decorator.html#-computed>
 - <https://vuejs.org/v2/guide/computed.html>
 
-[] Separate txnUpdate and noTxnUpdate
+[x] Separate GapCommitTxn from norm Txn.
 
 [] Replace 'gap-view' with 'custom-tag-name'
+
+[] Prevent infinite loop of changing data caused by `watcher`
+
+[x] GapArr.unshift(item)
+
+[x] Alternate `console.log` for debug
