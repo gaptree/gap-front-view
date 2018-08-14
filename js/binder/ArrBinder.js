@@ -74,9 +74,21 @@ export class ArrBinder extends BinderBase {
         }
 
         //this.elem.innerHTML = '';
-        this.elem.appendChild(tpl.nodes[0]);
+        //this.elem.appendChild(tpl.nodes[0]);
         this.tplDict[key] = tpl;
         return this.tplDict[key];
+    }
+
+    appendTpl(tpl) {
+        this.elem.appendChild(tpl.nodes[0]);
+    }
+
+    prependTpl(tpl) {
+        if (this.elem.firstChild) {
+            this.elem.insertBefore(tpl.nodes[0], this.elem.firstChild);
+        } else {
+            this.appendTpl(tpl);
+        }
     }
 
     removeItemByKey(key) {

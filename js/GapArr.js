@@ -4,6 +4,11 @@ import {GapDpt} from './GapDpt';
 import {GapCommitTxn} from './txn/GapCommitTxn';
 import {GapTxn} from './txn/GapTxn';
 
+const actionType = {
+    push: 1,
+    unshift: 2
+};
+
 export class GapArr extends GapObj {
     constructor() {
         super();
@@ -30,10 +35,10 @@ export class GapArr extends GapObj {
         
         for (let index = 0; index < src.length; index++) {
             const item = src[index];
-            this._push(item, txn);
+            this._addItem(item, txn, actionType.push);
         }
 
-        this._clearPrevAndSort();
+        this._clearArrPrev();
 
         txn.end();
     }
@@ -77,7 +82,7 @@ export class GapArr extends GapObj {
     push(item) {
         const txn = new GapCommitTxn();
         txn.start();
-        this._push(item, txn);
+        this._addItem(item, txn, actionType.push);
         txn.end();
     }
 
@@ -89,6 +94,13 @@ export class GapArr extends GapObj {
         return item;
     }
 
+    unshift(item) {
+        const txn = new GapCommitTxn();
+        txn.start();
+        this._addItem(item, txn, actionType.unshift);
+        txn.end();
+    }
+
     shift() {
         const dptId = this._arr.curr.shift();
         const dpt = this._getDpt(dptId);
@@ -97,16 +109,6 @@ export class GapArr extends GapObj {
         return item;
     }
 
-    unshift(item) {
-        throw new Error('todo');
-
-        const txn = new GapCommitTxn();
-        txn.start();
-        this._push(item, txn);
-        txn.end();
-    }
-
-    // extends from array
     get length() {
         return this._arr.curr.length;
     }
@@ -129,10 +131,10 @@ export class GapArr extends GapObj {
             .filter(handler);
         
         filtered.forEach(item => {
-            this._push(item, txn);
+            this._addItem(item, txn, actionType.push);
         });
 
-        this._clearPrevAndSort();
+        this._clearArrPrev();
 
         txn.end();
 
@@ -149,10 +151,12 @@ export class GapArr extends GapObj {
         });
     }
 
-    _push(item, txn) {
+    /*
+     * action = pop | push
+     */
+    _addItem(item, txn, action) {
         let currentDpt;
-        Object.keys(this._arrBinders).forEach(arrBinderId => {
-            const arrBinder = this._arrBinders[arrBinderId];
+        this._forEachArrBinder(arrBinder => {
             if (!arrBinder.filterItem(item)) {
                 return;
             }
@@ -160,8 +164,8 @@ export class GapArr extends GapObj {
             const itemKey = arrBinder.itemToKey(item);
             const subKey = this._genSubKey(arrBinder.id, itemKey);
             const hasSubProxy = this._hasSubProxy(subKey);
-            const subProxy = this._fetchSubProxy(subKey);
             const subDptId = this._getSubDptId(subKey);
+            const tpl = arrBinder.fetchTpl(itemKey);
 
             if (currentDpt) {
                 if (subDptId === undefined) {
@@ -180,12 +184,16 @@ export class GapArr extends GapObj {
             }
 
             if (!hasSubProxy) {
-                const tpl = arrBinder.fetchTpl(itemKey);
-                const itemAs = arrBinder.itemAs;
-
-                subProxy.data.appendDpt(itemAs, currentDpt);
+                const subProxy = new GapProxy();
+                subProxy.data.appendDpt(arrBinder.itemAs, currentDpt);
                 subProxy.bindTpl(tpl);
+                this._setSubProxy(subKey, subProxy);
+            }
 
+            if (action === actionType.push) {
+                arrBinder.appendTpl(tpl);
+            } else if (action === actionType.unshift) {
+                arrBinder.prependTpl(tpl);
             }
         });
 
@@ -232,16 +240,20 @@ export class GapArr extends GapObj {
         return this._subProxies.hasOwnProperty(subKey);
     }
 
-    _fetchSubProxy(subKey) {
-        if (this._hasSubProxy(subKey)) {
-            return this._subProxies[subKey];
-        }
-
-        this._subProxies[subKey] = new GapProxy();
+    _getSubProxy(subKey) {
         return this._subProxies[subKey];
     }
 
+    _setSubProxy(subKey, subProxy) {
+        this._subProxies[subKey] = subProxy;
+    }
+
     _defineIndex(index) {
+        const descriptor = Object.getOwnPropertyDescriptor(this, index);
+        if (descriptor) {
+            return;
+        }
+
         Object.defineProperty(this, index, {
             enumerable: true,
             configurable: true,
@@ -265,17 +277,6 @@ export class GapArr extends GapObj {
         });
     }
 
-    /*
-    _initLength() {
-        let length = 0;
-        Object.defineProperty(this, 'length', {
-            enumerable: false,
-            get: () => length,
-            set: (val) => length = val
-        });
-    }
-    */
-
     _setDpt(dptId, dpt) {
         this._dpts[dptId] = dpt;
     }
@@ -284,7 +285,7 @@ export class GapArr extends GapObj {
         return this._dpts[dptId];
     }
 
-    _clearPrevAndSort() {
+    _clearArrPrev() {
         const currItems = [];
 
         this._arr.curr.forEach(dptId => {
@@ -301,9 +302,11 @@ export class GapArr extends GapObj {
             }
         });
 
+        /*
         Object.keys(this._arrBinders).forEach(arrBinderId => {
             const arrBinder = this._arrBinders[arrBinderId];
             arrBinder.sort(currItems);
         });
+        */
     }
 }
