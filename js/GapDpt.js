@@ -83,7 +83,6 @@ export class GapDpt {
     }
 
     commitChanging() {
-
         if (this.htmlBinders.length > 0) {
             this.htmlBinders.forEach(binder => binder.update(this.currentVal));
         }

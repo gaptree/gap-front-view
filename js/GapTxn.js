@@ -1,21 +1,9 @@
-export class GapTxn {
+import {GapTxnBase} from './GapTxnBase';
+
+export class GapTxn extends GapTxnBase {
     constructor() {
-        this.level = 0;
+        super();
         this.changedDpts = {};
-    }
-
-    start() {
-        this.level++;
-        //console.log('start changing', this.level);
-    }
-
-    end() {
-        this.level--;
-
-        //console.log('end changing', this.level);
-        if (this.level === 0) {
-            this.commit();
-        }
     }
 
     commit() {
@@ -25,7 +13,6 @@ export class GapTxn {
         }
 
         console.log('>>> commit changing <<<');
-
         ids.forEach(id => {
             const dpt = this.changedDpts[id];
             dpt.commitChanging();
