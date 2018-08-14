@@ -1,12 +1,7 @@
-import {GapTxnBase} from './GapTxnBase';
+import {GapTxn} from './GapTxn';
 
-export class GapTxn extends GapTxnBase {
-    constructor() {
-        super();
-        this.changedDpts = {};
-    }
-
-    commit() {
+export class GapCommitTxn extends GapTxn {
+    onCompleted() {
         const ids = Object.keys(this.changedDpts);
         if (ids.length === 0) {
             return;
@@ -17,10 +12,5 @@ export class GapTxn extends GapTxnBase {
             const dpt = this.changedDpts[id];
             dpt.commitChanging();
         });
-        this.changedDpts = {};
-    }
-
-    addChangedDpt(dpt) {
-        this.changedDpts[dpt.id] = dpt;
     }
 }
