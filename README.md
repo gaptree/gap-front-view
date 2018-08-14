@@ -255,7 +255,11 @@ userView.update({
 
 ## todo
 
-Implement feature like 'computed'
+[] Implement feature like 'computed'
 
 - <https://mobx.js.org/refguide/computed-decorator.html#-computed>
 - <https://vuejs.org/v2/guide/computed.html>
+
+[] Separate txnUpdate and noTxnUpdate
+
+[] Replace 'gap-view' with 'custom-tag-name'
