@@ -1,7 +1,8 @@
 import {GapProxy} from './GapProxy';
 import {GapObj} from './GapObj';
 import {GapDpt} from './GapDpt';
-import {GapTxn} from './GapTxn';
+import {GapCommitTxn} from './txn/GapCommitTxn';
+import {GapTxn} from './txn/GapTxn';
 
 export class GapArr extends GapObj {
     constructor() {
@@ -25,7 +26,7 @@ export class GapArr extends GapObj {
     update(src, txn) {
         this._prepareArr();
 
-        txn && txn.start();
+        txn.start();
         
         for (let index = 0; index < src.length; index++) {
             const item = src[index];
@@ -34,7 +35,7 @@ export class GapArr extends GapObj {
 
         this._clearPrevAndSort();
 
-        txn && txn.end();
+        txn.end();
     }
 
     // array
@@ -74,7 +75,7 @@ export class GapArr extends GapObj {
     }
 
     push(item) {
-        const txn = new GapTxn();
+        const txn = new GapCommitTxn();
         txn.start();
         this._push(item, txn);
         txn.end();
@@ -99,7 +100,7 @@ export class GapArr extends GapObj {
     unshift(item) {
         throw new Error('todo');
 
-        const txn = new GapTxn();
+        const txn = new GapCommitTxn();
         txn.start();
         this._push(item, txn);
         txn.end();
@@ -111,6 +112,7 @@ export class GapArr extends GapObj {
     }
 
     filter(handler) {
+        const txn = new GapTxn();
         const oriArr = [];
         this._arr.curr.forEach(item => oriArr.push(item));
 
@@ -127,10 +129,12 @@ export class GapArr extends GapObj {
             .filter(handler);
         
         filtered.forEach(item => {
-            this._push(item);
+            this._push(item, txn);
         });
 
         this._clearPrevAndSort();
+
+        txn.end();
 
         return filtered;
     }

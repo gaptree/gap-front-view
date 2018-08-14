@@ -1,7 +1,7 @@
 import {GapCompiler} from './GapCompiler';
 import {GapObj} from './GapObj';
 import {GapArr} from './GapArr';
-import {GapTxn} from './GapTxn';
+import {GapCommitTxn} from './txn/GapCommitTxn';
 
 export class GapProxy {
     constructor() {
@@ -25,7 +25,7 @@ export class GapProxy {
     }
 
     update(data) {
-        const txn = new GapTxn();
+        const txn = new GapCommitTxn();
 
         txn.start();
         this.data.update(data, txn);

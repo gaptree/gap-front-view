@@ -1,4 +1,4 @@
-import {GapTxn} from './GapTxn';
+import {GapCommitTxn} from './txn/GapCommitTxn';
 
 let gapDptIndex = 0;
 
@@ -56,7 +56,7 @@ export class GapDpt {
 
     setter() {
         return (val) => {
-            const txn = new GapTxn();
+            const txn = new GapCommitTxn();
             txn.start();
 
             if (this.currentVal && this.currentVal.update) {

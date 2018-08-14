@@ -1,5 +1,4 @@
 import {GapDpt} from './GapDpt';
-//import {GapTxn} from './GapTxn';
 
 export class GapObj {
     constructor() {
@@ -103,14 +102,9 @@ export class GapObj {
     }
 
     update(inSrc, txn) {
-        /*
-        if (!(inSrc instanceof Object)) {
-            throw new Error('fullUpdate, 2nd param require Object');
-        }
-        */
         const src = Object.assign({}, inSrc);
 
-        txn && txn.start();
+        txn.start();
 
         Object.keys(this).forEach(key => {
             this.set(key, src[key], txn);
@@ -120,7 +114,7 @@ export class GapObj {
         Object.keys(src).forEach(key => {
             this.set(key, src[key], txn);
         });
-        txn && txn.end();
+        txn.end();
     }
 
     set(prop, val, txn) {
@@ -132,7 +126,7 @@ export class GapObj {
             } else {
                 dpt.setVal(val);
             }
-            if (dpt.isChanged() && txn) {
+            if (dpt.isChanged()) {
                 txn.addChangedDpt(dpt);
             }
         } else {
