@@ -90,15 +90,13 @@ export class GapDpt {
             this.watchers.forEach(watcher => watcher.update(this.currentVal));
         }
 
-        this.logCommitChanging();
-
         this._isChanged = false;
     }
 
-    logCommitChanging() {
+    getLog() {
         const flags = [];
         if (this.htmlBinders.length > 0) {
-            flags.push('binder');
+            flags.push('htmlBinder');
         }
         if (this.watchers.length > 0) {
             flags.push('watcher');
@@ -119,7 +117,9 @@ export class GapDpt {
             }
             query += propStr;
 
-            console.log(` - ${query}`, this.currentVal, `(${flags.join(',')})`);
+            return ` - ${query} `
+                + this.currentVal
+                + ` (${flags.join(',')})`;
         }
     }
 }

@@ -1,9 +1,9 @@
 import {GapEvent} from './GapEvent';
 //import {GapObj} from './GapObj';
 import {GapProxy} from './GapProxy';
+import {GapTxn} from './txn/GapTxn';
 import {GapTpl} from './GapTpl';
 import {filterHolder} from './holder/filterHolder';
-
 import {createElem} from './lib/createElem';
 
 let viewIndex = 1;
@@ -50,6 +50,10 @@ export class View {
     getBindedQueries() {
         this.bindTpl();
         return Object.keys(this.proxy.dptQueries);
+    }
+
+    getLastLogs() {
+        return GapTxn.last().getLastLogs();
     }
 
     remove() {

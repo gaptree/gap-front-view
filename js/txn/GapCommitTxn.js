@@ -7,7 +7,7 @@ export class GapCommitTxn extends GapTxn {
             return;
         }
 
-        console.log('>>> commit changing <<<');
+        //console.log('>>> commit changing <<<');
         ids.forEach(id => {
             const dpt = this.changedDpts[id];
             dpt.commitChanging();

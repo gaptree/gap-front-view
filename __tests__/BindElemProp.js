@@ -35,7 +35,7 @@ test('bind elem prop', () => {
         name: 'Mike',
         address: 'Shanghai'
     });
-
+    //console.log(userView.getLastLogs());
 
     userView.appendTo(document.body);
     const userIdInput = document.querySelector('[name="userId"]');
