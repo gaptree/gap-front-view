@@ -32,9 +32,11 @@ export class GapProxy {
         txn.end();
     }
 
+    /*
     updateWithoutTxn(data) {
         this.data.update(data);
     }
+    */
 
     bindTpl(tpl) {
         const compiler = new GapCompiler(tpl);
@@ -42,8 +44,6 @@ export class GapProxy {
         this._bindArr(compiler.arrOpts);
         this._bindWatcher(compiler.watchers);
         this._bindView(compiler.viewOpts);
-
-        console.log('bindTpl', Object.keys(this.dptQueries));
     }
 
     queryGapObj(query) {

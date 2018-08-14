@@ -28,11 +28,14 @@ class UserView extends View {
 
 test('bind elem prop', () => {
     const userView = new UserView();
+    expect(userView.getBindedQueries()).toEqual(['userId', 'name', 'required', 'address']);
+
     userView.update({
         userId: 'id1',
         name: 'Mike',
         address: 'Shanghai'
     });
+
 
     userView.appendTo(document.body);
     const userIdInput = document.querySelector('[name="userId"]');

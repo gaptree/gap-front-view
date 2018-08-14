@@ -47,6 +47,11 @@ export class View {
         this._isBinded = true;
     }
 
+    getBindedQueries() {
+        this.bindTpl();
+        return Object.keys(this.proxy.dptQueries);
+    }
+
     remove() {
         this.tpl.remove();
         this.ctn.remove();
