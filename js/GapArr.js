@@ -208,7 +208,10 @@ export class GapArr extends GapObj {
             if (currentGapObj instanceof GapObj) {
                 currentGapObj.update(item, txn);
             } else {
-                currentDpt.setVal(item, txn);
+                currentDpt.setVal(item);
+            }
+            if (currentDpt.isChanged()) {
+                txn.addChangedDpt(currentDpt);
             }
         }
     }
