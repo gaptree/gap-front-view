@@ -47,7 +47,6 @@ export class GapProxy {
         const gapObj = this.queryObj(preQuery);
         if (!(gapObj[prop] instanceof GapObj)) {
             gapObj.addChild(prop, new GapObj());
-            //gapObj.createChildObj(prop);
         }
         return gapObj[prop];
     }
