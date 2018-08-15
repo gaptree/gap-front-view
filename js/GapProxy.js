@@ -7,7 +7,6 @@ export class GapProxy {
     constructor() {
         this.dpts = {};
         this.dptQueries = {};
-
         this.views = [];
     }
 
@@ -40,12 +39,12 @@ export class GapProxy {
         this._bindView(compiler.viewOpts);
     }
 
-    queryGapObj(query) {
+    queryObj(query) {
         if (query === '') {
             return this.data;
         }
         const [preQuery, prop] = this._parseQuery(query);
-        const gapObj = this.queryGapObj(preQuery);
+        const gapObj = this.queryObj(preQuery);
         if (!(gapObj[prop] instanceof GapObj)) {
             gapObj.addChild(prop, new GapObj());
             //gapObj.createChildObj(prop);
@@ -59,7 +58,7 @@ export class GapProxy {
         }
 
         const [preQuery, prop] = this._parseQuery(query);
-        const gapObj = this.queryGapObj(preQuery);
+        const gapObj = this.queryObj(preQuery);
         const dpt = gapObj.fetchDpt(prop);
         this.dptQueries[query] = dpt;
 
@@ -70,13 +69,13 @@ export class GapProxy {
         Object.keys(map).forEach(dstQuery => {
             const srcQuery = map[dstQuery];
             if (dstQuery === '') {
-                dstProxy.data = this.queryGapObj(srcQuery);
+                dstProxy.data = this.queryObj(srcQuery);
                 return;
             }
 
             const [dstPreQuery, dstProp] = this._parseQuery(dstQuery);
             const srcDpt = this.queryDpt(srcQuery);
-            dstProxy.queryGapObj(dstPreQuery).appendDpt(dstProp, srcDpt);
+            dstProxy.queryObj(dstPreQuery).appendDpt(dstProp, srcDpt);
         });
     }
 
@@ -99,7 +98,7 @@ export class GapProxy {
     _bindArr(arrOpts) {
         Object.keys(arrOpts).forEach(query => {
             const [preQuery, prop] = this._parseQuery(query);
-            const preObj = this.queryGapObj(preQuery);
+            const preObj = this.queryObj(preQuery);
             const gapArr = new GapArr();
             preObj.addChild(prop, gapArr);
             arrOpts[query].forEach(arrBinder => {
