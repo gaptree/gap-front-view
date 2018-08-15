@@ -32,12 +32,6 @@ export class GapProxy {
         txn.end();
     }
 
-    /*
-    updateWithoutTxn(data) {
-        this.data.update(data);
-    }
-    */
-
     bindTpl(tpl) {
         const compiler = new GapCompiler(tpl);
         this._bindHtml(compiler.htmlBinders);
@@ -70,6 +64,20 @@ export class GapProxy {
         this.dptQueries[query] = dpt;
 
         return dpt;
+    }
+
+    link(dstProxy, map) {
+        Object.keys(map).forEach(dstQuery => {
+            const srcQuery = map[dstQuery];
+            if (dstQuery === '') {
+                dstProxy.data = this.queryGapObj(srcQuery);
+                return;
+            }
+
+            const [dstPreQuery, dstProp] = this._parseQuery(dstQuery);
+            const srcDpt = this.queryDpt(srcQuery);
+            dstProxy.queryGapObj(dstPreQuery).appendDpt(dstProp, srcDpt);
+        });
     }
 
     _parseQuery(query) {
@@ -111,20 +119,9 @@ export class GapProxy {
 
     _bindView(viewOpts) {
         viewOpts.forEach(opt => {
-            // todo
             const view = opt.view;
-            if (opt.bind) {
-                view.proxy.data = this.queryGapObj(opt.bind);
-            } else if (opt.bindMulti) {
-                Object.keys(opt.bindMulti).forEach(dstQuery => {
-                    const srcQuery = opt.bindMulti[dstQuery];
-                    const [dstPreQuery, dstProp] = this._parseQuery(dstQuery);
-                    const srcDpt = this.queryDpt(srcQuery);
-                    view.proxy.queryGapObj(dstPreQuery).appendDpt(dstProp, srcDpt);
-                });
-            }
-
-            view.bindTpl();
+            const map = opt.bind ? {'': opt.bind} : opt.bindMulti;
+            this.link(view.proxy, map);
 
             this.views.push(view);
             if (opt.ref) {
@@ -133,6 +130,7 @@ export class GapProxy {
             opt.ons.forEach(item => {
                 view.on(item[0], item[1]);
             });
+            opt.node.replace(view.getBindedCtn());
         });
     }
 }

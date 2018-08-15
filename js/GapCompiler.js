@@ -73,7 +73,8 @@ export class GapCompiler {
             view: view,
             bindMulti: {},
             bind: null,
-            ons: []
+            ons: [],
+            node: node
         };
 
         for (const attr of node.attributes) {
@@ -116,7 +117,7 @@ export class GapCompiler {
         }
 
         this.viewOpts.push(viewOpt);
-        node.replace(view.ctn);
+        //node.replace(view.ctn);
 
         return view.ctn;
     }
