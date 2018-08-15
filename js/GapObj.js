@@ -3,7 +3,6 @@ import {GapDpt} from './GapDpt';
 export class GapObj {
     constructor() {
         this.defineSecureProp('_dpts', {});
-        //this.defineSecureProp('_parentDpt', parentDpt);
     }
 
     defineSecureProp(prop, defaultVal) {
