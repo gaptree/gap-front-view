@@ -42,6 +42,12 @@ export class GapObj {
         }
 
         dpt.addParentObj(prop, this);
+        this._dpts[prop] = dpt;
+    }
+
+    defineDpt(prop, dpt) {
+        this.setDpt(prop, dpt);
+
         if (this.hasOwnProperty(prop)) {
             dpt.setVal(this[prop]);
         }
@@ -52,7 +58,6 @@ export class GapObj {
             get: dpt.getter(),
             set: dpt.setter()
         });
-        this._dpts[prop] = dpt;
     }
 
     getDpt(prop) {
@@ -65,7 +70,7 @@ export class GapObj {
         }
 
         const dpt = new GapDpt();
-        this.setDpt(prop, dpt);
+        this.defineDpt(prop, dpt);
         return dpt;
     }
 

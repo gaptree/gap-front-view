@@ -51,7 +51,6 @@ export class GapArr extends GapObj {
 
             const subKey = this._genSubKey(arrBinder.Id, itemKey);
             const subDptId = this._getSubDptId(subKey);
-            //const dpt = this._getDpt(subDptId);
             delete(this._dpts[subDptId]);
             delete(this._subProxies[subKey]);
             delete(this._subDptIds[subKey]);
@@ -63,7 +62,7 @@ export class GapArr extends GapObj {
         this._forEachArrBinder(arrBinder => {
             const subKey = this._genSubKey(arrBinder.id, itemKey);
             const dptId = this._getSubDptId(subKey);
-            const dpt = this._getDpt(dptId);
+            const dpt = this.getDpt(dptId);
             if (currentDpt) {
                 if (dpt && currentDpt.id !== dpt.id) {
                     throw new Error('dpt.id not match');
@@ -88,7 +87,7 @@ export class GapArr extends GapObj {
 
     pop() {
         const dptId = this._arr.curr.pop();
-        const dpt = this._getDpt(dptId);
+        const dpt = this.getDpt(dptId);
         const item = dpt.getVal();
         this.delete(item);
         return item;
@@ -103,7 +102,7 @@ export class GapArr extends GapObj {
 
     shift() {
         const dptId = this._arr.curr.shift();
-        const dpt = this._getDpt(dptId);
+        const dpt = this.getDpt(dptId);
         const item = dpt.getVal();
         this.delete(item);
         return item;
@@ -127,7 +126,7 @@ export class GapArr extends GapObj {
                 }
                 return false;
             })
-            .map(dptId => this._getDpt(dptId).getVal()) // to check
+            .map(dptId => this.getDpt(dptId).getVal()) // to check
             .filter(handler);
         
         filtered.forEach(item => {
@@ -176,16 +175,16 @@ export class GapArr extends GapObj {
             } else {
                 if (subDptId === undefined) {
                     currentDpt = new GapDpt();
-                    this._setDpt(currentDpt.id, currentDpt);
+                    this.setDpt(currentDpt.id, currentDpt);
                     this._setSubDptId(subKey, currentDpt.id);
                 } else {
-                    currentDpt = this._getDpt(subDptId);
+                    currentDpt = this.getDpt(subDptId);
                 }
             }
 
             if (!hasSubProxy) {
                 const subProxy = new GapProxy();
-                subProxy.data.setDpt(arrBinder.itemAs, currentDpt);
+                subProxy.data.defineDpt(arrBinder.itemAs, currentDpt);
                 subProxy.bindTpl(tpl);
                 this._setSubProxy(subKey, subProxy);
             }
@@ -262,7 +261,7 @@ export class GapArr extends GapObj {
                 if (!dptId) {
                     return;
                 }
-                const dpt = this._getDpt(dptId);
+                const dpt = this.getDpt(dptId);
                 if (dpt) {
                     return dpt.getVal();
                 }
@@ -277,26 +276,18 @@ export class GapArr extends GapObj {
         });
     }
 
-    _setDpt(dptId, dpt) {
-        this._dpts[dptId] = dpt;
-    }
-
-    _getDpt(dptId) {
-        return this._dpts[dptId];
-    }
-
     _clearArrPrev() {
         const currItems = [];
 
         this._arr.curr.forEach(dptId => {
-            currItems.push(this._getDpt(dptId).getVal());
+            currItems.push(this.getDpt(dptId).getVal());
             if (this._arr.prev[dptId]) {
                 delete(this._arr.prev[dptId]);
             }
         });
 
         Object.keys(this._arr.prev).forEach(dptId => {
-            const dpt = this._getDpt(dptId);
+            const dpt = this.getDpt(dptId);
             if (dpt) {
                 this.delete(dpt.getVal());
             }
