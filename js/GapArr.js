@@ -29,6 +29,10 @@ export class GapArr extends GapObj {
     }
 
     update(src, txn) {
+        if (!src) {
+            return;
+        }
+
         this._prepareArr();
 
         txn.start();
@@ -201,10 +205,11 @@ export class GapArr extends GapObj {
             this._defineIndex(this._arr.curr.length - 1);
 
             const currentGapObj = currentDpt.getVal();
-            if (!(currentGapObj instanceof GapObj)) {
-                throw new Error('to check must be GapObj');
+            if (currentGapObj instanceof GapObj) {
+                currentGapObj.update(item, txn);
+            } else {
+                currentDpt.setVal(item, txn);
             }
-            currentGapObj.update(item, txn);
         }
     }
 
