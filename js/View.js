@@ -9,8 +9,6 @@ import {createElem} from './lib/createElem';
 let viewIndex = 1;
 
 export class View {
-    static get tag() { return null; }
-
     constructor(props = {}) {
         this.vid = 'gv' + viewIndex++;
         this.props = props || {};
@@ -19,6 +17,12 @@ export class View {
 
         this.event = new GapEvent();
         this.proxy = new GapProxy();
+    }
+
+    static get tag() { return null; }
+
+    static enableDebug() {
+        GapTxn.enableDebug();
     }
 
     get data() {

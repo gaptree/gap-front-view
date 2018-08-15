@@ -104,8 +104,6 @@ export class GapObj {
     update(inSrc, txn) {
         const src = Object.assign({}, inSrc);
 
-        txn.start();
-
         Object.keys(this).forEach(key => {
             this.set(key, src[key], txn);
             delete(src[key]);
@@ -114,7 +112,6 @@ export class GapObj {
         Object.keys(src).forEach(key => {
             this.set(key, src[key], txn);
         });
-        txn.end();
     }
 
     set(prop, val, txn) {

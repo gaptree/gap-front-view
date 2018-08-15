@@ -1,11 +1,18 @@
+let isDebug = false;
 const txnPool = [];
 const max = 3;
 
 const pushTxn = (txn) => {
+    if (!isDebug) {
+        return;
+    }
     txnPool.push(txn);
 };
 
 const shiftTxn = () => {
+    if (!isDebug) {
+        return;
+    }
     if (txnPool.length > max) {
         txnPool.shift();
     }
@@ -23,6 +30,10 @@ export class GapTxn {
 
     static getPool() {
         return txnPool;
+    }
+
+    static enableDebug() {
+        isDebug = true;
     }
 
     static last() {
