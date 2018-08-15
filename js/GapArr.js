@@ -185,7 +185,7 @@ export class GapArr extends GapObj {
 
             if (!hasSubProxy) {
                 const subProxy = new GapProxy();
-                subProxy.data.appendDpt(arrBinder.itemAs, currentDpt);
+                subProxy.data.setDpt(arrBinder.itemAs, currentDpt);
                 subProxy.bindTpl(tpl);
                 this._setSubProxy(subKey, subProxy);
             }

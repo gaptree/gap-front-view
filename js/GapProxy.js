@@ -75,7 +75,7 @@ export class GapProxy {
 
             const [dstPreQuery, dstProp] = this._parseQuery(dstQuery);
             const srcDpt = this.queryDpt(srcQuery);
-            dstProxy.queryObj(dstPreQuery).appendDpt(dstProp, srcDpt);
+            dstProxy.queryObj(dstPreQuery).setDpt(dstProp, srcDpt);
         });
     }
 

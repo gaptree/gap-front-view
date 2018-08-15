@@ -33,35 +33,14 @@ export class GapObj {
         return this._dpts.hasOwnProperty(prop);
     }
 
-    appendDpt(prop, dpt) {
-        if (dpt instanceof GapDpt) {
-            this.setDpt(prop, dpt);
-        }
-        /*
+    setDpt(prop, dpt) {
         if (this.hasDpt(prop)) {
             throw new Error('dpt duplicated: ' + prop);
         }
-
-        if (this.hasOwnProperty(prop)) {
-            dpt.setVal(this[prop]);
+        if (!(dpt instanceof GapDpt)) {
+            throw new Error('require GapDpt');
         }
 
-        Object.defineProperty(this, prop, {
-            enumerable: true,
-            configurable: true,
-            get: dpt.getter(),
-            set: dpt.setter()
-        });
-        this._dpts[prop] = dpt;
-        */
-    }
-
-    setDpt(prop, inDpt) {
-        if (this.hasDpt(prop)) {
-            throw new Error('dpt duplicated: ' + prop);
-        }
-
-        const dpt = inDpt ? inDpt : new GapDpt();
         dpt.addParentObj(prop, this);
         if (this.hasOwnProperty(prop)) {
             dpt.setVal(this[prop]);
@@ -85,14 +64,14 @@ export class GapObj {
             return this.getDpt(prop);
         }
 
-        this.setDpt(prop);
-        return this.getDpt(prop);
+        const dpt = new GapDpt();
+        this.setDpt(prop, dpt);
+        return dpt;
     }
 
     addChild(prop, gapObj) {
         if (gapObj instanceof GapObj) {
             const dpt = this.fetchDpt(prop);
-            //const gapObj = new GapObj(dpt);
             gapObj.setParentDpt(dpt);
             dpt.setVal(gapObj);
             return gapObj;
