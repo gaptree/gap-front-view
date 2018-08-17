@@ -47,8 +47,9 @@ export class View {
         if (this._isBinded) {
             return;
         }
-        this.proxy.bindTpl(this.tpl);
         this._isBinded = true;
+        this.proxy.bindTpl(this.tpl);
+        this.startup();
     }
 
     getBindedQueries() {
@@ -75,6 +76,9 @@ export class View {
     }
 
     template() {
+    }
+
+    startup() {
     }
 
     update(data) {
