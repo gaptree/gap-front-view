@@ -2,6 +2,7 @@ import {textHolder} from './holder/textHolder';
 import {funHolder} from './holder/funHolder';
 import {objHolder} from './holder/objHolder';
 import {viewHolder} from './holder/viewHolder';
+import {componentHolder} from './holder/componentHolder';
 
 import {ElemPropBinder} from './binder/ElemPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
@@ -40,24 +41,89 @@ export class GapCompiler {
         node._compiled = true;
 
         let compiled;
-        switch(node.tagName.toLowerCase()) {
-        case viewHolder.tagName:
-            compiled = this._compileGapView(node);
-            break;
-        case textHolder.tagName: 
-            compiled = this._compileGapText(node);
-            break;
-        default:
+        let tagName = node.tagName.toLowerCase();
+
+        if (textHolder.tagName == tagName) {
+            return this._compileGapText(node);
+        }
+
+        // compatiable
+        if (viewHolder.tagName == tagName) {
+            return this._compileGapView(node);
+        }
+
+        if ((node instanceof HTMLUnknownElement) && componentHolder.get(tagName)) {
+            return this._compileComponent(node);
+        }
+
+        if (node instanceof HTMLElement) {
             compiled = this._compileElem(node);
             this._compileNodeCollection(node.childNodes);
+            return compiled;
         }
-        return compiled;
+
+        throw new Error(`cannot find element ${tagName}, please check your code`);
     }
 
     _compileNodeCollection(nodeCollection) {
         for (const node of nodeCollection) {
             this._compileNode(node);
         }
+    }
+
+    _compileComponent(node) {
+        let props =  node.attributes.props ? objHolder.get(node.attributes.props.value) : {};
+        const view = new (componentHolder.get(node.tagName.toLowerCase()))(props);
+        const viewOpt = {
+            view: view,
+            bindMulti: {},
+            bind: null,
+            ons: [],
+            node: node
+        };
+
+        for (const attr of node.attributes) {
+            const attrName = attr.name;
+            const attrVal = attr.value;
+
+            if (attrName === 'ref') {
+                viewOpt.ref = funHolder.get(attrVal);
+                continue;
+            }
+
+            if (attrName === 'bind') {
+                viewOpt.bind = attrVal;
+                continue;
+            }
+
+            if (attrName === 'bind-multi') {
+                viewOpt.bindMulti = objHolder.get(attrVal);
+                continue;
+            }
+
+            const [pre, type] = this._toPreAndType(attrName);
+            if (!pre) {
+                continue;
+            }
+
+            if (pre === 'on') {
+                viewOpt.ons.push([type, funHolder.get(attrVal)]);
+                continue;
+            }
+
+            if (pre === 'bind') {
+                viewOpt.bindMulti[this._attrNameToVarName(type)] = attrVal;
+                continue;
+            }
+        }
+
+        if (viewOpt.bind && Object.keys(viewOpt.bindMulti).length > 0) {
+            throw new Error('view.bind view.bindMulti cannot exist at same time');
+        }
+
+        this.viewOpts.push(viewOpt);
+
+        return view.ctn;
     }
 
     /**

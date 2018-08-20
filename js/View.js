@@ -4,6 +4,7 @@ import {GapProxy} from './GapProxy';
 import {GapTxn} from './txn/GapTxn';
 import {GapTpl} from './GapTpl';
 import {filterHolder} from './holder/filterHolder';
+import {componentHolder} from './holder/componentHolder';
 import {createElem} from './lib/createElem';
 
 let viewIndex = 1;
@@ -17,13 +18,21 @@ export class View {
 
         this.event = new GapEvent();
         this.proxy = new GapProxy();
+
+        componentHolder.holdComponents(this.component());
     }
 
     static get tag() { return null; }
 
+    static regComponent(id, component) {
+        componentHolder.hold(id, component);
+    }
+
     static enableDebug() {
         GapTxn.enableDebug();
     }
+
+    component() { return {}; }
 
     get data() {
         return this.proxy.data;
@@ -97,7 +106,7 @@ export class View {
         this.bindTpl();
         return this.ctn;
     }
-    
+
     // event
     on(evtName, handle) {
         return this.event.on(evtName, handle);
