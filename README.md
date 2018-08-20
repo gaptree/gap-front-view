@@ -255,17 +255,21 @@ userView.update({
 
 ## todo
 
-[] Implement feature like 'computed'
+[] Implement feature like 'computed' -> jason
 
 - <https://mobx.js.org/refguide/computed-decorator.html#-computed>
 - <https://vuejs.org/v2/guide/computed.html>
 
 [x] Separate GapCommitTxn from norm Txn.
 
-[] Replace 'gap-view' with 'custom-tag-name'
+[] Replace 'gap-view' with 'custom-tag-name' -> sc
 
-[] Prevent infinite loop of changing data caused by `watcher`
+[] Prevent infinite loop of changing data caused by `watcher` -> zk
 
 [x] GapArr.unshift(item)
 
 [x] Alternate `console.log` for debug
+
+[] Separate proxy/data from view -> jason
+
+[] vdom / ast -> sc
