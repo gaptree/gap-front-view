@@ -4,6 +4,7 @@ import {GapProxy} from './GapProxy';
 import {GapTxn} from './txn/GapTxn';
 import {GapTpl} from './GapTpl';
 import {filterHolder} from './holder/filterHolder';
+import {componentHolder} from './holder/componentHolder';
 import {createElem} from './lib/createElem';
 
 let viewIndex = 1;
@@ -17,6 +18,8 @@ export class View {
 
         this.event = new GapEvent();
         this.proxy = new GapProxy();
+
+        componentHolder.holdComponents(this.component());
     }
 
     static get tag() { return null; }
@@ -24,6 +27,8 @@ export class View {
     static enableDebug() {
         GapTxn.enableDebug();
     }
+
+    component() { return {}; }
 
     get data() {
         return this.proxy.data;
