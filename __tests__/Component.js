@@ -8,24 +8,37 @@ class AuthorView extends View {
     }
 }
 
+class DetailView extends View {
+    template() {
+        return this.html`
+            <div class="detail">$${'title'}</div>
+        `;
+    }
+}
+
+// global register
+View.regComponent('author-view', AuthorView);
+
 class BookView extends View {
     template() {
         return this.html`
-            <div class="book-author">
-                <AuthorView props=${{'name': 'gap'}} bind-age="age"></AuthorView>
+            <div class="book">
+                <author-view props=${{'name': 'gap'}} bind-age="age"></author-view>
+                <book-detail bind-title="title"></book-detail>
             </div>
         `;
     }
 
-    component() {return {AuthorView}; }
+    // local register
+    component() { return {'book-detail': DetailView}; }
 }
 
 test('component', () => {
     const bookView = new BookView();
     bookView.appendTo(document.body);
 
-    bookView.update({age: 18});
+    bookView.update({title: 'gap', age: 18});
 
-    const bookAuthorElem = document.querySelector('.book-author');
-    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="author"><span>gap</span>18</div>');
+    const bookAuthorElem = document.querySelector('.book');
+    expect(bookAuthorElem.innerHTML.trim()).toBe('<div class="author"><span>gap</span>18</div> <div class="detail">gap</div>');
 });

@@ -24,6 +24,10 @@ export class View {
 
     static get tag() { return null; }
 
+    static regComponent(id, component) {
+        componentHolder.hold(id, component);
+    }
+
     static enableDebug() {
         GapTxn.enableDebug();
     }
@@ -102,7 +106,7 @@ export class View {
         this.bindTpl();
         return this.ctn;
     }
-    
+
     // event
     on(evtName, handle) {
         return this.event.on(evtName, handle);

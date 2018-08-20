@@ -3,7 +3,6 @@ import {funHolder} from './holder/funHolder';
 import {objHolder} from './holder/objHolder';
 import {viewHolder} from './holder/viewHolder';
 import {componentHolder} from './holder/componentHolder';
-import {isReservedTag} from './lib/isReservedTag';
 
 import {ElemPropBinder} from './binder/ElemPropBinder';
 import {TextNodeBinder} from './binder/TextNodeBinder';
@@ -44,12 +43,6 @@ export class GapCompiler {
         let compiled;
         let tagName = node.tagName.toLowerCase();
 
-        if (isReservedTag(tagName)){
-            compiled = this._compileElem(node);
-            this._compileNodeCollection(node.childNodes);
-            return compiled;
-        }
-
         if (textHolder.tagName == tagName) {
             return this._compileGapText(node);
         }
@@ -59,11 +52,17 @@ export class GapCompiler {
             return this._compileGapView(node);
         }
 
-        if (componentHolder.get(tagName)) {
+        if ((node instanceof HTMLUnknownElement) && componentHolder.get(tagName)) {
             return this._compileComponent(node);
         }
 
-        return compiled;
+        if (node instanceof HTMLElement) {
+            compiled = this._compileElem(node);
+            this._compileNodeCollection(node.childNodes);
+            return compiled;
+        }
+
+        throw new Error(`cannot find element ${tagName}, please check your code`);
     }
 
     _compileNodeCollection(nodeCollection) {
@@ -73,7 +72,7 @@ export class GapCompiler {
     }
 
     _compileComponent(node) {
-        let props = objHolder.get(node.attributes.props.value);
+        let props =  node.attributes.props ? objHolder.get(node.attributes.props.value) : {};
         const view = new (componentHolder.get(node.tagName.toLowerCase()))(props);
         const viewOpt = {
             view: view,

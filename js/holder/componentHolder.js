@@ -11,17 +11,16 @@ export const componentHolder = {
         }
 
         for (let key in componentsObj) {
-            if (!(componentsObj[key].prototype instanceof View)) {
-                throw new TypeError(`component ${key} must be instance of View`);
-            }
-
             componentHolder.hold(key.toLocaleLowerCase(), componentsObj[key]);
         }
     },
 
-    hold: (id, component) => {
+    hold: (id ,c) => {
+        if (!(c.prototype instanceof View)) {
+            throw new TypeError(`component ${id} must be instance of View`);
+        }
         // replace the previous component with a new one when their ids is the same
-        components[id.toLowerCase()] = component;
+        components[id.toLowerCase()] = c;
     },
 
     get: (id) => {
