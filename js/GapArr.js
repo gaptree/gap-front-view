@@ -53,7 +53,7 @@ export class GapArr extends GapObj {
             const itemKey = arrBinder.itemToKey(item);
             arrBinder.removeItemByKey(itemKey);
 
-            const subKey = this._genSubKey(arrBinder.Id, itemKey);
+            const subKey = this._genSubKey(arrBinder.id, itemKey);
             const subDptId = this._getSubDptId(subKey);
             delete(this._dpts[subDptId]);
             delete(this._subProxies[subKey]);
