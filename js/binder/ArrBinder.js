@@ -12,7 +12,15 @@ export class ArrBinder extends BinderBase {
 
         this.itemAs = this.elem.getAttribute('item-as');
         this.itemKeyHandler = funHolder.get(this.elem.getAttribute('item-key'));
-        this.itemTplhandler = funHolder.get(this.elem.innerHTML.trim());
+
+        let tplHolder = this.elem.getAttribute('item-tpl').trim();
+        if (!tplHolder) {
+            tplHolder = this.elem.innerHTML.trim();
+        }
+        if (!tplHolder) {
+            throw new Error('Cannot find Arr tpl holder');
+        }
+        this.itemTplhandler = funHolder.get(tplHolder);
 
         const itemFilterAttr = this.elem.getAttribute('item-filter');
         if (itemFilterAttr) {
